@@ -5,18 +5,19 @@ import { evaluateRiskProfile } from '../engine/riskProfile.js';
 import { buildTimeSlots } from '../engine/timeSlots.js';
 import { VALID_CATEGORIES } from '../knowledge/actions.js';
 import { getLocale } from '../knowledge/localeLoader.js';
-import { airQualityService as defaultAirService } from './airQualityService.js';
+import {
+  airQualityService as defaultAirService,
+  createManualAirReading,
+} from './airQualityService.js';
 import { geminiService as defaultGeminiService } from './geminiService.js';
 
 /**
- * Orchestrate the full AirWise decision pipeline:
- * 1. Obtain PM2.5 / PM10 (Open-Meteo or manual override)
- * 2. Compute transparent CPCB AQI
- * 3. Evaluate household risk profile (in-request only)
- * 4. Run deterministic rule engine to select <=12 actions
- * 5. Build 5-daypart timeline + cleanest hours
- * 6. Calculate transparent commute CO2e savings & exposure notes
- * 7. Personalize wording with Gemini (or fall back seamlessly to locale rules)
+ * Orchestrate the full AirWise decision pipeline from air reading to personalized plan.
+ *
+ * @param {object} [deps] - Optional service overrides for testing.
+ * @param {object} [deps.airQualityService] - Air quality lookup service.
+ * @param {object} [deps.geminiService] - Personalization service with rule fallback.
+ * @returns {{ buildPlan: Function }} Plan builder exposing buildPlan().
  */
 export function createPlanBuilder({
   airQualityService = defaultAirService,
@@ -27,14 +28,7 @@ export function createPlanBuilder({
     let placeLabel;
 
     if (manual && typeof manual.pm25 === 'number') {
-      airReading = {
-        pm25: manual.pm25,
-        pm10: typeof manual.pm10 === 'number' ? manual.pm10 : null,
-        observedAt: new Date().toISOString(),
-        hourly: null,
-        source: 'manual',
-        cached: false,
-      };
+      airReading = createManualAirReading(manual);
       placeLabel = manual.label ? String(manual.label).trim() : '';
     } else {
       airReading = await airQualityService.getAirQuality(location.lat, location.lon);
@@ -103,7 +97,7 @@ export function createPlanBuilder({
         pm25: airReading.pm25,
         pm10: airReading.pm10,
         observedAt: airReading.observedAt,
-        dataSource: airReading.source,
+        dataSource: airReading.dataSource,
         placeLabel,
       },
       // Coarse risk summary only — never echoes back health condition boolean
@@ -120,7 +114,7 @@ export function createPlanBuilder({
         commuteImpact,
         bestHours,
         familyTip: personalized.familyTip,
-        source: personalized.source,
+        copySource: personalized.copySource,
       },
       disclaimer: locale['footer.disclaimer'],
       generatedAt: new Date().toISOString(),

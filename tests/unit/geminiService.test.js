@@ -60,7 +60,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       language: 'en',
     });
 
-    expect(result.source).toBe('ai');
+    expect(result.copySource).toBe('ai');
     expect(result.headline).toBe('Very Poor air today; keep outdoor trips brief');
     expect(result.headline).not.toContain('<b>');
     expect(result.items).toHaveLength(2);
@@ -78,7 +78,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       language: 'hi',
     });
 
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
     expect(result.items).toHaveLength(2);
     expect(result.headline).toMatch(/हवा|स्मॉग/);
   });
@@ -95,7 +95,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       selectedActions: sampleActions,
       language: 'en',
     });
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
   });
 
   test('rejects unknown actionId or extra invented actions and falls back', async () => {
@@ -128,7 +128,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       selectedActions: sampleActions,
       language: 'en',
     });
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
     expect(result.items.map((i) => i.actionId)).toEqual([
       'wear_n95_outdoors',
       'close_windows_evening_night',
@@ -165,7 +165,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       selectedActions: sampleActions,
       language: 'en',
     });
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
   });
 
   test('falls back cleanly on timeout without throwing', async () => {
@@ -181,7 +181,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       selectedActions: sampleActions,
       language: 'en',
     });
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
   });
 
   test('falls back immediately on 403 error from SDK without surfacing an error', async () => {
@@ -203,7 +203,7 @@ describe('geminiService (constrained personalization + fallback)', () => {
       language: 'en',
     });
 
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
     expect(mockFn).toHaveBeenCalledTimes(1); // Does not waste retry on 403
   });
 
@@ -258,6 +258,6 @@ describe('geminiService (constrained personalization + fallback)', () => {
 
     expect(mockGenerate).toHaveBeenCalledTimes(1);
     expect(mockGenerate.mock.calls[0][0].config.temperature).toBe(0.3);
-    expect(result.source).toBe('rules');
+    expect(result.copySource).toBe('rules');
   });
 });

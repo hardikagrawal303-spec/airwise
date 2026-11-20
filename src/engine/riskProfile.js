@@ -4,7 +4,7 @@ import { CATEGORY_RANK } from '../config/aqiBreakpoints.js';
  * Threshold constants for household vulnerability classification.
  * Kept explicit so every risk decision is auditable and unit-testable.
  */
-export const RISK_THRESHOLDS = Object.freeze({
+const RISK_THRESHOLDS = Object.freeze({
   // AQI rank at which a respiratory/heart condition escalates risk to "high" ("Poor" = rank 3)
   CONDITION_HIGH_AQI_RANK: CATEGORY_RANK['Poor'],
   // AQI rank at which children or elderly escalate risk to "high" ("Very Poor" = rank 4)
@@ -17,8 +17,8 @@ export const RISK_THRESHOLDS = Object.freeze({
   OPEN_COMMUTE_MIN_KM: 5,
 });
 
-export const OPEN_EXPOSURE_COMMUTES = Object.freeze(new Set(['walk', 'cycle', 'two_wheeler', 'auto']));
-export const HIGH_INDOOR_SMOKE_FUELS = Object.freeze(new Set(['wood_or_biomass', 'kerosene']));
+const OPEN_EXPOSURE_COMMUTES = Object.freeze(new Set(['walk', 'cycle', 'two_wheeler', 'auto']));
+const HIGH_INDOOR_SMOKE_FUELS = Object.freeze(new Set(['wood_or_biomass', 'kerosene']));
 
 /**
  * Evaluate household vulnerability level based on household profile and current AQI.
@@ -32,7 +32,11 @@ export function evaluateRiskProfile(profile, aqiResult) {
   if (!profile || typeof profile !== 'object' || !profile.members) {
     throw new TypeError('A valid household profile is required');
   }
-  if (!aqiResult || typeof aqiResult.category !== 'string' || !(aqiResult.category in CATEGORY_RANK)) {
+  if (
+    !aqiResult ||
+    typeof aqiResult.category !== 'string' ||
+    !(aqiResult.category in CATEGORY_RANK)
+  ) {
     throw new TypeError('A valid aqiResult with a CPCB category is required');
   }
 

@@ -8,12 +8,8 @@ import { ACTIONS } from '../../src/knowledge/actions.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../..');
 
-const enLocale = JSON.parse(
-  fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8')
-);
-const hiLocale = JSON.parse(
-  fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8')
-);
+const enLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8'));
+const hiLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8'));
 
 describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene', () => {
   test('maps every API error code and HTTP status to friendly localized messages (never raw HTTP text)', () => {
@@ -132,7 +128,6 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
         if (ignored.has(entry.name)) continue;
         const full = path.join(dir, entry.name);
         const rel = path.relative(base, full);
-        if (rel === 'public/assets/aistudio') continue;
         if (entry.isDirectory()) {
           results.push(...walkFiles(full, base));
         } else {
@@ -167,6 +162,22 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
       for (const pattern of secretPatterns) {
         expect(content).not.toMatch(pattern);
       }
+    }
+  });
+
+  test('public/ contains only explicitly allowlisted static assets and git tracks no leftover artifacts', () => {
+    const allowedPublicEntries = ['css', 'fonts', 'index.html', 'js', 'locales'];
+    const actualEntries = fs.readdirSync(path.join(rootDir, 'public')).sort();
+    expect(actualEntries).toEqual(allowedPublicEntries);
+
+    if (fs.existsSync(path.join(rootDir, '.git'))) {
+      const tracked = execSync('git ls-files', { cwd: rootDir, encoding: 'utf8' })
+        .split('\n')
+        .map((f) => f.trim())
+        .filter(Boolean);
+      expect(tracked.some((f) => f.startsWith('public/assets/aistudio/'))).toBe(false);
+      expect(tracked.some((f) => f.startsWith('.aistudio/'))).toBe(false);
+      expect(tracked).not.toContain('bun.lock');
     }
   });
 });

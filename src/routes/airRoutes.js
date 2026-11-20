@@ -2,7 +2,15 @@ import { Router } from 'express';
 import { calculateAqi } from '../engine/aqi.js';
 import { findBestHours } from '../engine/timeSlots.js';
 import { airQuerySchema, geocodeQuerySchema, validate } from '../middleware/validate.js';
+import { createManualAirReading } from '../services/airQualityService.js';
 
+/**
+ * Create Express router serving /api/geocode and /api/air endpoints.
+ *
+ * @param {object} deps - Route dependencies.
+ * @param {object} deps.airQualityService - Air quality and geocoding service.
+ * @returns {import('express').Router} Configured Express router.
+ */
 export function createAirRouter({ airQualityService }) {
   const router = Router();
 
@@ -19,19 +27,10 @@ export function createAirRouter({ airQualityService }) {
     try {
       const { lat, lon, manualPm25, manualPm10 } = req.validatedQuery;
 
-      let reading;
-      if (manualPm25 !== undefined) {
-        reading = {
-          pm25: manualPm25,
-          pm10: manualPm10 !== undefined ? manualPm10 : null,
-          observedAt: new Date().toISOString(),
-          hourly: null,
-          source: 'manual',
-          cached: false,
-        };
-      } else {
-        reading = await airQualityService.getAirQuality(lat, lon);
-      }
+      const reading =
+        manualPm25 !== undefined
+          ? createManualAirReading({ pm25: manualPm25, pm10: manualPm10 })
+          : await airQualityService.getAirQuality(lat, lon);
 
       const aqi = calculateAqi({ pm25: reading.pm25, pm10: reading.pm10 });
       const bestHours = findBestHours(reading.hourly);
@@ -42,7 +41,7 @@ export function createAirRouter({ airQualityService }) {
         aqi,
         bestHours,
         observedAt: reading.observedAt,
-        dataSource: reading.source,
+        dataSource: reading.dataSource,
       });
     } catch (err) {
       next(err);

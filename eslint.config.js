@@ -1,6 +1,47 @@
+const requireExportJsdocRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description: 'Require JSDoc with @param and @returns tags on exported functions',
+    },
+    schema: [],
+  },
+  create(context) {
+    const sourceCode = context.sourceCode;
+    return {
+      ExportNamedDeclaration(node) {
+        const decl = node.declaration;
+        if (!decl || decl.type !== 'FunctionDeclaration') return;
+        const comments = sourceCode.getCommentsBefore(node);
+        const jsdoc = comments.findLast((c) => c.type === 'Block' && c.value.startsWith('*'));
+        const name = decl.id?.name || 'anonymous';
+        if (!jsdoc) {
+          context.report({
+            node: decl.id || decl,
+            message: `Exported function "${name}" must have a JSDoc comment.`,
+          });
+          return;
+        }
+        if (decl.params.length > 0 && !/@param\b/.test(jsdoc.value)) {
+          context.report({
+            node: decl.id || decl,
+            message: `Exported function "${name}" JSDoc must document parameters with @param.`,
+          });
+        }
+        if (!/@returns?\b/.test(jsdoc.value)) {
+          context.report({
+            node: decl.id || decl,
+            message: `Exported function "${name}" JSDoc must include @returns.`,
+          });
+        }
+      },
+    };
+  },
+};
+
 export default [
   {
-    ignores: ['node_modules/**', 'coverage/**', 'dist/**', 'build/**', '.playwright-cli/**', 'public/assets/**'],
+    ignores: ['node_modules/**', 'coverage/**', 'dist/**', 'build/**', '.playwright-cli/**'],
   },
   {
     files: ['**/*.js'],
@@ -31,6 +72,19 @@ export default [
       'no-implied-eval': 'error',
       'no-new-func': 'error',
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['src/**/*.js', 'public/js/**/*.js'],
+    plugins: {
+      local: {
+        rules: {
+          'require-export-jsdoc': requireExportJsdocRule,
+        },
+      },
+    },
+    rules: {
+      'local/require-export-jsdoc': 'error',
     },
   },
   {

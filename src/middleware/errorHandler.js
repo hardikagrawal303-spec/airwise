@@ -2,10 +2,27 @@ import crypto from 'node:crypto';
 import { AppError, ERROR_CODES } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
+/**
+ * Express middleware that forwards unmatched API routes as a 404 AppError.
+ *
+ * @param {import('express').Request} _req - Express request.
+ * @param {import('express').Response} _res - Express response.
+ * @param {import('express').NextFunction} next - Express next callback.
+ * @returns {void}
+ */
 export function notFoundHandler(_req, _res, next) {
   next(new AppError(ERROR_CODES.NOT_FOUND, 'The requested resource was not found.', 404));
 }
 
+/**
+ * Centralized Express error handler returning structured JSON with a per-error requestId.
+ *
+ * @param {Error} err - Thrown or forwarded error.
+ * @param {import('express').Request} req - Express request.
+ * @param {import('express').Response} res - Express response.
+ * @param {import('express').NextFunction} _next - Express next callback (required 4-arg signature).
+ * @returns {import('express').Response} Structured JSON error response.
+ */
 export function errorHandler(err, req, res, _next) {
   const requestId = crypto.randomUUID();
 

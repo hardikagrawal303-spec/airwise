@@ -3,6 +3,7 @@ import {
   COMMUTE_MODE_ALIASES,
   EMISSION_FACTORS,
 } from '../config/emissionFactors.js';
+import { ACTIONS_BY_ID } from '../knowledge/actions.js';
 
 function round2(value) {
   return Math.round(value * 100) / 100;
@@ -19,12 +20,23 @@ function resolveMode(mode, paramName) {
 /**
  * Estimate daily and monthly CO2e savings from switching daily commute mode.
  * Returns transparent formula, assumptions, confidence, and isEstimate: true.
+ *
+ * @param {object} input - Commute comparison inputs.
+ * @param {string} input.currentMode - Current commute mode identifier.
+ * @param {string} input.newMode - Cleaner target commute mode identifier.
+ * @param {number} input.kmPerDay - Daily round-trip commute distance in km.
+ * @returns {object} Transparent CO2e savings estimate with formula and assumptions.
  */
 export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
   const current = resolveMode(currentMode, 'currentMode');
   const target = resolveMode(newMode, 'newMode');
 
-  if (typeof kmPerDay !== 'number' || Number.isNaN(kmPerDay) || !Number.isFinite(kmPerDay) || kmPerDay < 0) {
+  if (
+    typeof kmPerDay !== 'number' ||
+    Number.isNaN(kmPerDay) ||
+    !Number.isFinite(kmPerDay) ||
+    kmPerDay < 0
+  ) {
     throw new RangeError('kmPerDay must be a finite number >= 0');
   }
 
@@ -64,6 +76,9 @@ export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
 
 /**
  * Pick a practical cleaner commute comparison for the household profile.
+ *
+ * @param {object} profile - Household profile with commute mode and km/day.
+ * @returns {object} Commute CO2e comparison estimate.
  */
 export function buildCommuteComparison(profile) {
   const current = profile?.commute || 'car';
@@ -86,6 +101,9 @@ export function buildCommuteComparison(profile) {
 /**
  * Honest qualitative exposure-reduction guidance for actions.
  * Never invents disease-prevention numbers; uses "can help reduce" language only.
+ *
+ * @param {string} actionId - Curated action identifier.
+ * @returns {{ exposureEffect: string, summary: string, formula: string, assumptions: string[], confidence: string, isEstimate: boolean }} Qualitative impact metadata.
  */
 export function estimateExposureReduction(actionId) {
   if (actionId === 'wear_n95_outdoors') {
@@ -136,42 +154,17 @@ export function estimateExposureReduction(actionId) {
     };
   }
 
-  const indoorIds = new Set([
-    'timed_window_ventilation',
-    'close_windows_evening_night',
-    'seal_door_window_gaps',
-    'wet_mop_no_dry_sweep',
-    'avoid_incense_candles',
-    'run_kitchen_exhaust',
-    'keep_bedroom_clean_zone',
-    'indoor_plants_realistic_note',
-  ]);
+  const actionCategory = ACTIONS_BY_ID[actionId]?.category;
 
-  const communityIds = new Set([
-    'switch_to_metro_or_bus',
-    'carpool_school_office',
-    'walk_cycle_short_trips',
-    'switch_clean_cooking_fuel',
-    'no_waste_leaf_burning',
-    'avoid_diesel_generator',
-    'engine_off_at_red_lights',
-    'combine_deliveries_work_remote',
-    'report_open_burning',
-    'organize_rwa_school_smog_plan',
-    'check_on_elderly_neighbours',
-    'share_weekly_family_plan',
-    'request_water_sprinkling_dust_control',
-    'advocate_no_idling_school_gate',
-  ]);
-
-  if (indoorIds.has(actionId)) {
+  if (actionCategory === 'indoor_air') {
     return {
       exposureEffect: 'mainly reduces indoor particle buildup',
       summary:
         actionId === 'indoor_plants_realistic_note'
           ? 'Indoor plants brighten a room, but studies show household plants do not meaningfully lower indoor PM2.5; rely on sealing, ventilation timing, and filtration instead.'
           : 'Can help reduce indoor fine-particle buildup and keep your sleeping and living spaces calmer during peak smog hours.',
-      formula: 'Qualitative indoor-air estimate (no single universal percentage applies across homes).',
+      formula:
+        'Qualitative indoor-air estimate (no single universal percentage applies across homes).',
       assumptions: [
         'Impact varies with room ventilation rate, outdoor AQI, and how tightly doors and windows close.',
       ],
@@ -180,12 +173,13 @@ export function estimateExposureReduction(actionId) {
     };
   }
 
-  if (communityIds.has(actionId)) {
+  if (actionCategory === 'community' || actionCategory === 'sustainable_alternative') {
     return {
       exposureEffect: 'can help reduce local neighbourhood emissions',
       summary:
         'Can help reduce tailpipe, generator, or open-burning smoke in your immediate street and neighbourhood over time.',
-      formula: 'Qualitative community-emissions estimate; impact scales with how many households participate.',
+      formula:
+        'Qualitative community-emissions estimate; impact scales with how many households participate.',
       assumptions: [
         'Individual actions matter most when paired with neighbourhood and municipal compliance.',
       ],

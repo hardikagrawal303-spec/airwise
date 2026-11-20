@@ -3,7 +3,7 @@ import { buildTimeSlots, DAYPART_ORDER, findBestHours } from '../../src/engine/t
 describe('Time-of-day guidance engine', () => {
   test('returns general winter smog pattern when hourly data is absent', () => {
     const best = findBestHours(null);
-    expect(best.source).toBe('pattern');
+    expect(best.windowSource).toBe('pattern');
     expect(best.isPattern).toBe(true);
     expect(best.isForecast).toBe(false);
     expect(best.windowLabel).toBe('13:00 - 16:00');
@@ -25,7 +25,7 @@ describe('Time-of-day guidance engine', () => {
     };
 
     const best = findBestHours(hourly);
-    expect(best.source).toBe('hourly_model');
+    expect(best.windowSource).toBe('hourly_model');
     expect(best.isPattern).toBe(false);
     expect(best.isForecast).toBe(true);
     expect(best.windowLabel).toBe('13:00 - 15:00');

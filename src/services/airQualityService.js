@@ -40,8 +40,29 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchJsonWithTimeoutAndRetry(url, { fetchImpl, timeoutMs, retryDelayMs }) {
-  const maxAttempts = 2;
+/**
+ * Normalize a user-provided manual PM2.5/PM10 reading into the standard air reading shape.
+ *
+ * @param {object} input - Manual pollutant readings.
+ * @param {number} input.pm25 - PM2.5 concentration in ug/m3.
+ * @param {number|null} [input.pm10=null] - Optional PM10 concentration in ug/m3.
+ * @returns {{ pm25: number, pm10: number|null, observedAt: string, hourly: null, dataSource: 'manual', cached: false }} Normalized air reading.
+ */
+export function createManualAirReading({ pm25, pm10 = null }) {
+  return {
+    pm25,
+    pm10: typeof pm10 === 'number' ? pm10 : null,
+    observedAt: new Date().toISOString(),
+    hourly: null,
+    dataSource: 'manual',
+    cached: false,
+  };
+}
+
+async function fetchJsonWithTimeoutAndRetry(
+  url,
+  { fetchImpl, timeoutMs, retryDelayMs, maxAttempts = config.upstreamMaxAttempts }
+) {
   let lastError;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -80,14 +101,31 @@ async function fetchJsonWithTimeoutAndRetry(url, { fetchImpl, timeoutMs, retryDe
   throw lastError;
 }
 
+/**
+ * Create a cached Open-Meteo geocoding and air-quality client.
+ *
+ * @param {object} [options] - Optional overrides for fetch, timeouts, retries, and cache sizing.
+ * @param {typeof fetch} [options.fetchImpl=globalThis.fetch] - Fetch implementation.
+ * @param {number} [options.timeoutMs] - Per-request timeout in milliseconds.
+ * @param {number} [options.cacheTtlMs] - AQI cache TTL in milliseconds.
+ * @param {number} [options.retryDelayMs] - Delay between retry attempts in milliseconds.
+ * @param {number} [options.maxAttempts] - Maximum fetch attempts per request.
+ * @param {number} [options.maxCacheEntries] - Maximum LRU entries per cache.
+ * @returns {{ geocode: Function, getAirQuality: Function }} Air quality service methods.
+ */
 export function createAirQualityService({
   fetchImpl = globalThis.fetch,
   timeoutMs = config.upstreamTimeoutMs,
   cacheTtlMs = config.aqiCacheTtlMs,
-  retryDelayMs = 250,
+  retryDelayMs = config.upstreamRetryDelayMs,
+  maxAttempts = config.upstreamMaxAttempts,
+  maxCacheEntries = config.cacheMaxEntries,
 } = {}) {
-  const aqiCache = new TtlCache({ ttlMs: cacheTtlMs, maxEntries: 200 });
-  const geocodeCache = new TtlCache({ ttlMs: cacheTtlMs * 3, maxEntries: 200 });
+  const aqiCache = new TtlCache({ ttlMs: cacheTtlMs, maxEntries: maxCacheEntries });
+  const geocodeCache = new TtlCache({
+    ttlMs: cacheTtlMs * config.geocodeCacheTtlMultiplier,
+    maxEntries: maxCacheEntries,
+  });
 
   async function geocode(query) {
     const trimmed = String(query || '').trim();
@@ -107,7 +145,7 @@ export function createAirQualityService({
 
     const params = new URLSearchParams({
       name: trimmed,
-      count: '5',
+      count: String(config.geocodeResultCount),
       language: 'en',
       format: 'json',
     });
@@ -118,6 +156,7 @@ export function createAirQualityService({
         fetchImpl,
         timeoutMs,
         retryDelayMs,
+        maxAttempts,
       });
       const parsed = geocodeResponseSchema.safeParse(raw);
       if (!parsed.success) {
@@ -132,8 +171,8 @@ export function createAirQualityService({
           country: item.country,
           countryCode: item.country_code,
           label: parts.join(', '),
-          lat: Number(item.latitude.toFixed(4)),
-          lon: Number(item.longitude.toFixed(4)),
+          lat: Number(item.latitude.toFixed(config.geocodeCoordPrecision)),
+          lon: Number(item.longitude.toFixed(config.geocodeCoordPrecision)),
         };
       });
 
@@ -168,8 +207,8 @@ export function createAirQualityService({
     }
 
     // Round to 2 decimal places for caching (~1.1 km grid) and avoid sending or logging PII
-    const roundedLat = Number(lat.toFixed(2));
-    const roundedLon = Number(lon.toFixed(2));
+    const roundedLat = Number(lat.toFixed(config.aqiCacheCoordPrecision));
+    const roundedLon = Number(lon.toFixed(config.aqiCacheCoordPrecision));
     const cacheKey = `${roundedLat},${roundedLon}`;
 
     const cached = aqiCache.get(cacheKey);
@@ -192,6 +231,7 @@ export function createAirQualityService({
         fetchImpl,
         timeoutMs,
         retryDelayMs,
+        maxAttempts,
       });
       const parsed = airQualityResponseSchema.safeParse(raw);
       if (!parsed.success || parsed.data.current.pm2_5 === null) {
@@ -207,7 +247,7 @@ export function createAirQualityService({
         observedAt: parsed.data.current.time || new Date().toISOString(),
         timezone: parsed.data.timezone || 'auto',
         hourly: parsed.data.hourly || null,
-        source: 'open-meteo',
+        dataSource: 'open-meteo',
         cached: false,
       };
 
@@ -230,10 +270,6 @@ export function createAirQualityService({
   return {
     geocode,
     getAirQuality,
-    clearCaches: () => {
-      aqiCache.clear();
-      geocodeCache.clear();
-    },
   };
 }
 

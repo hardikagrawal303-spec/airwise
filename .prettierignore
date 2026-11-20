@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+dist/
+build/
+.aistudio/
+.playwright-cli/
+package-lock.json
+public/fonts/
+docs/images/

@@ -60,19 +60,19 @@ describe('Household risk profile engine', () => {
   });
 
   test('returns elevated for respiratory/heart condition on Good-Moderate, and high on Poor+', () => {
-    const moderate = evaluateRiskProfile(
-      makeProfile({ hasRespiratoryOrHeartCondition: true }),
-      { aqi: 150, category: 'Moderate' }
-    );
+    const moderate = evaluateRiskProfile(makeProfile({ hasRespiratoryOrHeartCondition: true }), {
+      aqi: 150,
+      category: 'Moderate',
+    });
     expect(moderate.vulnerabilityLevel).toBe('elevated');
     expect(moderate.isSensitiveGroup).toBe(true);
     expect(moderate.reasons).toContain('risk.reason.health_condition');
 
     for (const category of ['Poor', 'Very Poor', 'Severe']) {
-      const severe = evaluateRiskProfile(
-        makeProfile({ hasRespiratoryOrHeartCondition: true }),
-        { aqi: 260, category }
-      );
+      const severe = evaluateRiskProfile(makeProfile({ hasRespiratoryOrHeartCondition: true }), {
+        aqi: 260,
+        category,
+      });
       expect(severe.vulnerabilityLevel).toBe('high');
       expect(severe.isSensitiveGroup).toBe(true);
     }
@@ -93,10 +93,10 @@ describe('Household risk profile engine', () => {
   });
 
   test('does not flag open-air commute below minimum distance or on Moderate air', () => {
-    const shortTrip = evaluateRiskProfile(
-      makeProfile({ commute: 'walk', commuteKmPerDay: 2 }),
-      { aqi: 250, category: 'Poor' }
-    );
+    const shortTrip = evaluateRiskProfile(makeProfile({ commute: 'walk', commuteKmPerDay: 2 }), {
+      aqi: 250,
+      category: 'Poor',
+    });
     expect(shortTrip.reasons).not.toContain('risk.reason.open_commute');
 
     const moderateAir = evaluateRiskProfile(

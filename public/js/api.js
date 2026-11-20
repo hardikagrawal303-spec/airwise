@@ -1,9 +1,3 @@
-/**
- * API client and strict error-code mapper.
- * Never exposes raw HTTP status codes (e.g. "Request failed with status 403")
- * to the user — every known code and status maps to a localized plain message.
- */
-
 const KNOWN_ERROR_KEYS = Object.freeze({
   AIR_UPSTREAM_FAILED: 'error.AIR_UPSTREAM_FAILED',
   GEOCODE_FAILED: 'error.GEOCODE_FAILED',
@@ -19,6 +13,11 @@ const KNOWN_ERROR_KEYS = Object.freeze({
   GEOLOCATION_UNAVAILABLE: 'error.GEOLOCATION_UNAVAILABLE',
 });
 
+/**
+ * Map API error codes or HTTP statuses to localized keys.
+ * @param {object} [err]
+ * @returns {string}
+ */
 export function mapErrorToLocaleKey({ code, status, isOffline = false, isTimeout = false } = {}) {
   if (isOffline) return KNOWN_ERROR_KEYS.NETWORK_OFFLINE;
   if (isTimeout) return KNOWN_ERROR_KEYS.REQUEST_TIMEOUT;
@@ -92,12 +91,28 @@ async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImpl = fet
   }
 }
 
+/**
+ * Search cities via /api/geocode.
+ * @param {string} query
+ * @param {typeof fetch} [fetchImpl=fetch]
+ * @returns {Promise<Array<object>>}
+ */
 export async function geocodeCities(query, fetchImpl = fetch) {
   const params = new URLSearchParams({ q: String(query || '').trim() });
-  const data = await fetchJson(`/api/geocode?${params.toString()}`, { method: 'GET' }, { fetchImpl });
+  const data = await fetchJson(
+    `/api/geocode?${params.toString()}`,
+    { method: 'GET' },
+    { fetchImpl }
+  );
   return Array.isArray(data?.results) ? data.results : [];
 }
 
+/**
+ * Request a household air-quality plan from /api/plan.
+ * @param {object} payload
+ * @param {typeof fetch} [fetchImpl=fetch]
+ * @returns {Promise<object>}
+ */
 export async function requestPlan(payload, fetchImpl = fetch) {
   return fetchJson(
     '/api/plan',

@@ -18,6 +18,11 @@ function assertValidConcentration(value, label) {
  * Compute CPCB pollutant sub-index via linear interpolation:
  * I = ((Ihi - Ilo) / (BPhi - BPlo)) * (C - BPlo) + Ilo
  * Capped at 500 and rounded to the nearest integer.
+ *
+ * @param {number} concentration - Pollutant concentration in ug/m3.
+ * @param {Array<object>} breakpoints - Ordered CPCB breakpoint segments.
+ * @param {string} [label='concentration'] - Label for validation error messages.
+ * @returns {number} Integer CPCB sub-index in [0, 500].
  */
 export function calculateSubIndex(concentration, breakpoints, label = 'concentration') {
   assertValidConcentration(concentration, label);
@@ -39,6 +44,12 @@ export function calculateSubIndex(concentration, breakpoints, label = 'concentra
   return Math.min(AQI_CAP, Math.round(raw));
 }
 
+/**
+ * Map a numeric CPCB AQI value to its official category metadata.
+ *
+ * @param {number} aqi - Computed CPCB AQI score.
+ * @returns {{ name: string, slug: string, min: number, max: number }} Matching CPCB category band.
+ */
 export function getAqiCategory(aqi) {
   assertValidConcentration(aqi, 'aqi');
   const clamped = Math.min(AQI_CAP, Math.round(aqi));
@@ -53,6 +64,11 @@ export function getAqiCategory(aqi) {
 /**
  * Calculate overall Indian CPCB AQI from PM2.5 and optional PM10 concentrations (ug/m3).
  * Overall AQI = max(subIndex(PM2.5), subIndex(PM10)), capped at 500.
+ *
+ * @param {object} [readings] - Pollutant concentrations.
+ * @param {number} readings.pm25 - PM2.5 concentration in ug/m3.
+ * @param {number|null} [readings.pm10=null] - Optional PM10 concentration in ug/m3.
+ * @returns {{ aqi: number, category: string, band: string, dominantPollutant: string, subIndices: object }} Computed CPCB AQI breakdown.
  */
 export function calculateAqi({ pm25, pm10 = null } = {}) {
   assertValidConcentration(pm25, 'pm25');

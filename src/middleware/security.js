@@ -6,6 +6,8 @@ import { logger } from '../utils/logger.js';
 /**
  * Strict Content-Security-Policy and security headers.
  * Zero inline scripts, zero inline styles, zero external scripts/fonts.
+ *
+ * @returns {import('express').RequestHandler} Configured Helmet middleware.
  */
 export function createSecurityHeadersMiddleware() {
   return helmet({
@@ -44,7 +46,9 @@ function parseAllowedOriginsSet(allowedOrigins) {
 }
 
 function normalizeHostForProtocol(rawHost, protocol) {
-  const host = String(rawHost || '').trim().toLowerCase();
+  const host = String(rawHost || '')
+    .trim()
+    .toLowerCase();
   if (protocol === 'https:' && host.endsWith(':443')) {
     return host.slice(0, -4);
   }
@@ -70,13 +74,14 @@ function isNonProdLoopbackHttpOrigin(originUrl) {
 
 /**
  * Same-origin enforcement middleware for API routes.
- * Allows requests when:
- * - Origin header is missing
- * - Origin is listed in ALLOWED_ORIGINS (trimmed, trailing slashes removed)
- * - Origin host matches the request's Host header
- * - Origin host matches the first X-Forwarded-Host header (only when trustProxy is enabled)
- * - In non-production, Origin is http://localhost or http://127.0.0.1 on any port
- * Rejects foreign origins with 403 ORIGIN_NOT_ALLOWED and logs Origin, Host, and X-Forwarded-Host.
+ * Allows missing Origin, configured ALLOWED_ORIGINS, matching Host, first
+ * X-Forwarded-Host when trustProxy is active, and non-prod loopback origins.
+ *
+ * @param {string[]|string} [allowedOrigins=[]] - Extra permitted Origin entries.
+ * @param {object} [options] - Runtime proxy and environment flags.
+ * @param {boolean|number|string} [options.trustProxy=false] - Express trust proxy setting.
+ * @param {string} [options.nodeEnv] - Active NODE_ENV value.
+ * @returns {import('express').RequestHandler} Express origin-guard middleware.
  */
 export function createOriginGuard(
   allowedOrigins = [],
@@ -133,28 +138,33 @@ export function createOriginGuard(
     });
 
     return next(
-      new AppError(
-        ERROR_CODES.ORIGIN_NOT_ALLOWED,
-        'This request origin is not permitted.',
-        403
-      )
+      new AppError(ERROR_CODES.ORIGIN_NOT_ALLOWED, 'This request origin is not permitted.', 403)
     );
   };
 }
 
+/**
+ * Create an express-rate-limit middleware that forwards 429 errors to errorHandler.
+ *
+ * @param {object} options - Rate-limit window settings.
+ * @param {number} options.windowMs - Window duration in milliseconds.
+ * @param {number} options.max - Maximum requests allowed per window.
+ * @returns {import('express').RequestHandler} Express rate-limiting middleware.
+ */
 export function createApiRateLimiter({ windowMs, max }) {
   return rateLimit({
     windowMs,
     max,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
-    handler: (_req, res) => {
-      res.status(429).json({
-        error: {
-          code: ERROR_CODES.RATE_LIMITED,
-          message: 'Too many requests in a short time. Please wait a minute and try again.',
-        },
-      });
+    handler: (_req, _res, next) => {
+      next(
+        new AppError(
+          ERROR_CODES.RATE_LIMITED,
+          'Too many requests in a short time. Please wait a minute and try again.',
+          429
+        )
+      );
     },
   });
 }

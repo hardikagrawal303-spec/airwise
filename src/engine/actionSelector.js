@@ -16,6 +16,29 @@ const EFFORT_BONUS = Object.freeze({
   hard: 0,
 });
 
+const SCORE_WEIGHTS = Object.freeze({
+  base: 20,
+  minRankMultiplier: 8,
+  poorSeverityBonus: 12,
+  mandatorySensitivePoorBonus: 100,
+  sensitiveMatchBonus: 16,
+  highVulnCoreBonus: 8,
+  commuteMatchBonus: 12,
+  longCommuteBonus: 4,
+  longCommuteMinKm: 8,
+  cleanCookingFuelBonus: 32,
+  cookingFuelMatchBonus: 16,
+  purifierMatchBonus: 14,
+  noPurifierMatchBonus: 14,
+  childrenMatchBonus: 14,
+  plantsNotePenalty: -10,
+});
+
+const SPECIAL_ACTION_IDS = Object.freeze({
+  switchCleanCookingFuel: 'switch_clean_cooking_fuel',
+  indoorPlantsRealisticNote: 'indoor_plants_realistic_note',
+});
+
 function isActionApplicable(action, { aqiRank, profile, risk }) {
   const minRank = CATEGORY_RANK[action.minCategory];
   if (aqiRank < minRank) {
@@ -61,19 +84,26 @@ function scoreAction(action, { aqiRank, profile, risk }) {
   const rules = action.appliesTo || {};
 
   // 1. Relevance to current AQI severity: higher-threshold actions get higher priority when triggered
-  let score = 20 + minRank * 8;
+  let score = SCORE_WEIGHTS.base + minRank * SCORE_WEIGHTS.minRankMultiplier;
   if (aqiRank >= CATEGORY_RANK['Poor'] && minRank >= CATEGORY_RANK['Poor']) {
-    score += 12;
+    score += SCORE_WEIGHTS.poorSeverityBonus;
   }
 
   // 2. Sensitivity weight
-  if (action.mandatoryIfSensitivePoorPlus && risk.isSensitiveGroup && aqiRank >= CATEGORY_RANK['Poor']) {
-    score += 100;
+  if (
+    action.mandatoryIfSensitivePoorPlus &&
+    risk.isSensitiveGroup &&
+    aqiRank >= CATEGORY_RANK['Poor']
+  ) {
+    score += SCORE_WEIGHTS.mandatorySensitivePoorBonus;
   } else if (risk.isSensitiveGroup && (rules.sensitiveOnly || rules.needsChildren)) {
-    score += 16;
+    score += SCORE_WEIGHTS.sensitiveMatchBonus;
   }
-  if (risk.vulnerabilityLevel === 'high' && (action.category === 'daily_routine' || action.category === 'indoor_air')) {
-    score += 8;
+  if (
+    risk.vulnerabilityLevel === 'high' &&
+    (action.category === 'daily_routine' || action.category === 'indoor_air')
+  ) {
+    score += SCORE_WEIGHTS.highVulnCoreBonus;
   }
 
   // 3. Budget and effort alignment
@@ -83,29 +113,32 @@ function scoreAction(action, { aqiRank, profile, risk }) {
 
   // 4. Direct household profile match bonuses
   if (Array.isArray(rules.commute) && rules.commute.includes(profile.commute)) {
-    score += 12;
-    if ((profile.commuteKmPerDay || 0) >= 8) {
-      score += 4;
+    score += SCORE_WEIGHTS.commuteMatchBonus;
+    if ((profile.commuteKmPerDay || 0) >= SCORE_WEIGHTS.longCommuteMinKm) {
+      score += SCORE_WEIGHTS.longCommuteBonus;
     }
   }
   if (Array.isArray(rules.cookingFuel) && rules.cookingFuel.includes(profile.cookingFuel)) {
     const isSolidOrKerosene =
       profile.cookingFuel === 'wood_or_biomass' || profile.cookingFuel === 'kerosene';
-    score += isSolidOrKerosene && action.id === 'switch_clean_cooking_fuel' ? 32 : 16;
+    score +=
+      isSolidOrKerosene && action.id === SPECIAL_ACTION_IDS.switchCleanCookingFuel
+        ? SCORE_WEIGHTS.cleanCookingFuelBonus
+        : SCORE_WEIGHTS.cookingFuelMatchBonus;
   }
   if (rules.needsPurifier && profile.hasPurifier) {
-    score += 14;
+    score += SCORE_WEIGHTS.purifierMatchBonus;
   }
   if (rules.needsNoPurifier && !profile.hasPurifier) {
-    score += 14;
+    score += SCORE_WEIGHTS.noPurifierMatchBonus;
   }
   if (rules.needsChildren && profile.members?.children > 0) {
-    score += 14;
+    score += SCORE_WEIGHTS.childrenMatchBonus;
   }
 
   // Keep realistic plants note lower priority so practical protective steps lead
-  if (action.id === 'indoor_plants_realistic_note') {
-    score -= 10;
+  if (action.id === SPECIAL_ACTION_IDS.indoorPlantsRealisticNote) {
+    score += SCORE_WEIGHTS.plantsNotePenalty;
   }
 
   return score;
@@ -122,6 +155,12 @@ function compareScored(a, b) {
  * Deterministically select up to 12 prioritized actions from the curated catalogue,
  * guaranteeing at least 2 actions per category where applicable and always including
  * the medical-care safety action for sensitive groups when AQI is Poor or worse.
+ *
+ * @param {object} input - Action selection inputs.
+ * @param {object} input.aqiResult - Computed CPCB AQI result with category.
+ * @param {object} input.profile - Validated household profile.
+ * @param {object} input.risk - Computed household risk profile.
+ * @returns {Array<object>} Priority-sorted actions capped at MAX_SELECTED_ACTIONS.
  */
 export function selectActions({ aqiResult, profile, risk }) {
   if (!aqiResult || !(aqiResult.category in CATEGORY_RANK)) {

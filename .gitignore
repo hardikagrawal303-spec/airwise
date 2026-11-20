@@ -23,10 +23,8 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Browser verification artifacts
+# Local verification & tool artifacts
 .playwright-cli/
 .aistudio/
 public/assets/aistudio/
 bun.lock
-
-

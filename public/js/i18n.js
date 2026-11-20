@@ -1,11 +1,12 @@
-/**
- * Lightweight bilingual i18n helper (English & Hindi).
- * Loads /locales/en.json and /locales/hi.json with zero external dependencies.
- */
-
 const loadedLocales = new Map();
 let currentLang = 'en';
 
+/**
+ * Fetch and cache a locale dictionary.
+ * @param {string} lang
+ * @param {typeof fetch} [fetchImpl=fetch]
+ * @returns {Promise<Record<string, string>>}
+ */
 export async function loadLocale(lang, fetchImpl = fetch) {
   const safeLang = lang === 'hi' ? 'hi' : 'en';
   if (loadedLocales.has(safeLang)) {
@@ -20,15 +21,32 @@ export async function loadLocale(lang, fetchImpl = fetch) {
   return data;
 }
 
+/**
+ * Register preloaded locale data.
+ * @param {string} lang
+ * @param {Record<string, string>} data
+ * @returns {void}
+ */
 export function registerLocaleData(lang, data) {
   const safeLang = lang === 'hi' ? 'hi' : 'en';
   loadedLocales.set(safeLang, data);
 }
 
+/**
+ * Return the active UI language code.
+ * @returns {'en'|'hi'}
+ */
 export function getLanguage() {
   return currentLang;
 }
 
+/**
+ * Translate a locale key with optional placeholders.
+ * @param {string} key
+ * @param {Record<string, string|number>} [vars={}]
+ * @param {string} [lang=currentLang]
+ * @returns {string}
+ */
 export function t(key, vars = {}, lang = currentLang) {
   const dict = loadedLocales.get(lang) || loadedLocales.get('en') || {};
   let template = dict[key];
@@ -41,6 +59,12 @@ export function t(key, vars = {}, lang = currentLang) {
   return template;
 }
 
+/**
+ * Apply translations to [data-i18n*] elements and html[lang].
+ * @param {Document|HTMLElement} [root=document]
+ * @param {string} [lang=currentLang]
+ * @returns {void}
+ */
 export function applyTranslations(root = document, lang = currentLang) {
   currentLang = lang === 'hi' ? 'hi' : 'en';
   if (root.documentElement) {

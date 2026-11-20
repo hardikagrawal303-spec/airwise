@@ -7,6 +7,12 @@ const LOCALES_DIR = path.resolve(__dirname, '../../public/locales');
 
 const cache = new Map();
 
+/**
+ * Load and cache a frozen translation dictionary for English or Hindi.
+ *
+ * @param {string} [language='en'] - Requested language code ('en' or 'hi').
+ * @returns {Readonly<Record<string, string>>} Frozen locale dictionary.
+ */
 export function getLocale(language = 'en') {
   const lang = language === 'hi' ? 'hi' : 'en';
   if (!cache.has(lang)) {

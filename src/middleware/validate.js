@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AppError, ERROR_CODES } from '../utils/errors.js';
 
-const PLACE_QUERY_REGEX = /^[\p{L}\p{N}\s,.'()-]+$/u;
+const SAFE_PLACE_TEXT_REGEX = /^[\p{L}\p{N}\s,.'()-]*$/u;
 
 export const geocodeQuerySchema = z
   .object({
@@ -10,7 +10,7 @@ export const geocodeQuerySchema = z
       .trim()
       .min(2, 'Enter at least 2 characters.')
       .max(80, 'City query must be 80 characters or fewer.')
-      .regex(PLACE_QUERY_REGEX, 'Use letters, spaces, and basic punctuation only.'),
+      .regex(SAFE_PLACE_TEXT_REGEX, 'Use letters, spaces, and basic punctuation only.'),
   })
   .strict();
 
@@ -40,7 +40,7 @@ export const airQuerySchema = z
     }
   });
 
-export const householdProfileSchema = z
+const householdProfileSchema = z
   .object({
     members: z
       .object({
@@ -77,7 +77,7 @@ const locationInputSchema = z
       .string()
       .trim()
       .max(100)
-      .regex(/^[\p{L}\p{N}\s,.'()-]*$/u, 'Invalid place label characters.')
+      .regex(SAFE_PLACE_TEXT_REGEX, 'Invalid place label characters.')
       .optional(),
   })
   .strict();
@@ -90,7 +90,7 @@ const manualAirInputSchema = z
       .string()
       .trim()
       .max(100)
-      .regex(/^[\p{L}\p{N}\s,.'()-]*$/u, 'Invalid place label characters.')
+      .regex(SAFE_PLACE_TEXT_REGEX, 'Invalid place label characters.')
       .optional(),
   })
   .strict();
@@ -117,6 +117,13 @@ export const planRequestSchema = z
     }
   });
 
+/**
+ * Build Express middleware that validates req.body or req.query against a Zod schema.
+ *
+ * @param {import('zod').ZodTypeAny} schema - Strict Zod validation schema.
+ * @param {'body'|'query'} [source='body'] - Request property to validate.
+ * @returns {import('express').RequestHandler} Express validation middleware.
+ */
 export function validate(schema, source = 'body') {
   return (req, _res, next) => {
     const raw = source === 'query' ? req.query : req.body;

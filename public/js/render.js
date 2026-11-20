@@ -1,4 +1,7 @@
 /* Safe DOM rendering module — uses createElement and textContent only (never innerHTML). */
+import { bindDisclosure } from './a11y.js';
+import { bandFromCategory } from './haze.js';
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const AQI_BANDS = [
   { slug: 'good', range: '0–50', shape: 'circle' },
@@ -35,23 +38,64 @@ function el(doc, tag, cls, text) {
 }
 
 function createBandShapeIcon(doc, shape) {
-  const svg = svgEl(doc, 'svg', { class: 'aqi-segment-icon', viewBox: '0 0 20 20', 'aria-hidden': 'true', focusable: 'false' });
+  const svg = svgEl(doc, 'svg', {
+    class: 'aqi-segment-icon',
+    viewBox: '0 0 20 20',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  });
   if (shape === 'circle') {
     svg.appendChild(svgEl(doc, 'circle', { cx: 10, cy: 10, r: 7, fill: 'currentColor' }));
   } else if (BAND_POLYGONS[shape]) {
     svg.appendChild(svgEl(doc, 'polygon', { points: BAND_POLYGONS[shape], fill: 'currentColor' }));
   } else {
-    svg.appendChild(svgEl(doc, 'rect', { x: 3, y: 3, width: 14, height: 14, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.5 }));
-    svg.appendChild(svgEl(doc, 'path', { d: 'M6 6 L14 14 M14 6 L6 14', stroke: 'currentColor', 'stroke-width': 2.2 }));
+    svg.appendChild(
+      svgEl(doc, 'rect', {
+        x: 3,
+        y: 3,
+        width: 14,
+        height: 14,
+        fill: 'none',
+        stroke: 'currentColor',
+        'stroke-width': 2.5,
+      })
+    );
+    svg.appendChild(
+      svgEl(doc, 'path', {
+        d: 'M6 6 L14 14 M14 6 L6 14',
+        stroke: 'currentColor',
+        'stroke-width': 2.2,
+      })
+    );
   }
   return svg;
 }
 
 function createDaypartIcon(doc, daypart) {
-  const svg = svgEl(doc, 'svg', { width: 18, height: 18, viewBox: '0 0 20 20', 'aria-hidden': 'true', focusable: 'false' });
-  const stroke = { fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round' };
+  const svg = svgEl(doc, 'svg', {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 20 20',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  });
+  const stroke = {
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': 1.8,
+    'stroke-linecap': 'round',
+  };
   if (daypart === 'school_work_run') {
-    svg.appendChild(svgEl(doc, 'circle', { cx: 10, cy: 10, r: 7, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8 }));
+    svg.appendChild(
+      svgEl(doc, 'circle', {
+        cx: 10,
+        cy: 10,
+        r: 7,
+        fill: 'none',
+        stroke: 'currentColor',
+        'stroke-width': 1.8,
+      })
+    );
     svg.appendChild(svgEl(doc, 'path', { d: DAYPART_PATHS.school_work_run, ...stroke }));
   } else if (daypart === 'midday') {
     svg.appendChild(svgEl(doc, 'circle', { cx: 10, cy: 10, r: 4, fill: 'currentColor' }));
@@ -59,7 +103,12 @@ function createDaypartIcon(doc, daypart) {
   } else if (DAYPART_PATHS[daypart]) {
     svg.appendChild(svgEl(doc, 'path', { d: DAYPART_PATHS[daypart], ...stroke }));
   } else {
-    svg.appendChild(svgEl(doc, 'path', { d: 'M13 4 A6.5 6.5 0 1 0 16 13.5 A5.2 5.2 0 1 1 13 4 Z', fill: 'currentColor' }));
+    svg.appendChild(
+      svgEl(doc, 'path', {
+        d: 'M13 4 A6.5 6.5 0 1 0 16 13.5 A5.2 5.2 0 1 1 13 4 Z',
+        fill: 'currentColor',
+      })
+    );
   }
   return svg;
 }
@@ -69,7 +118,10 @@ function formatObservedTime(isoString, lang) {
   try {
     const date = new Date(isoString);
     if (Number.isNaN(date.getTime())) return String(isoString);
-    return date.toLocaleTimeString(lang === 'hi' ? 'hi-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(lang === 'hi' ? 'hi-IN' : 'en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   } catch {
     return String(isoString);
   }
@@ -77,10 +129,21 @@ function formatObservedTime(isoString, lang) {
 
 function createActionListItem(doc, item, t, idPrefix) {
   const li = el(doc, 'li', 'action-item');
-  li.appendChild(el(doc, 'p', item.id === 'seek_medical_care_if_symptoms' ? 'action-text action-text-urgent' : 'action-text', item.text));
+  li.appendChild(
+    el(
+      doc,
+      'p',
+      item.id === 'seek_medical_care_if_symptoms'
+        ? 'action-text action-text-urgent'
+        : 'action-text',
+      item.text
+    )
+  );
 
   const metaRow = el(doc, 'div', 'action-meta-row');
-  metaRow.appendChild(el(doc, 'span', '', `${t(`action.cost.${item.cost}`)} · ${t(`action.effort.${item.effort}`)}`));
+  metaRow.appendChild(
+    el(doc, 'span', '', `${t(`action.cost.${item.cost}`)} · ${t(`action.effort.${item.effort}`)}`)
+  );
 
   if (item.whyItMatters) {
     const whyId = `${idPrefix}-why-${item.id}`;
@@ -98,11 +161,9 @@ function createActionListItem(doc, item, t, idPrefix) {
       panel.appendChild(el(doc, 'p', 'why-effect', item.impact.summary));
     }
 
-    btn.addEventListener('click', () => {
-      const next = btn.getAttribute('aria-expanded') !== 'true';
-      btn.setAttribute('aria-expanded', String(next));
-      btn.textContent = next ? t('action.hideWhy') : t('action.showWhy');
-      panel.hidden = !next;
+    bindDisclosure(btn, panel, {
+      getClosedLabel: () => t('action.showWhy'),
+      getOpenLabel: () => t('action.hideWhy'),
     });
 
     metaRow.appendChild(btn);
@@ -144,7 +205,12 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
 
   const thead = doc.createElement('thead');
   const headRow = doc.createElement('tr');
-  for (const colKey of ['impact.table.colChoice', 'impact.table.colDistance', 'impact.table.colDaily', 'impact.table.colMonthly']) {
+  for (const colKey of [
+    'impact.table.colChoice',
+    'impact.table.colDistance',
+    'impact.table.colDaily',
+    'impact.table.colMonthly',
+  ]) {
     const th = el(doc, 'th', '', t(colKey));
     th.scope = 'col';
     headRow.appendChild(th);
@@ -164,9 +230,16 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
 
   const km = `${commuteImpact.kmPerDay} km`;
   const hasSavings = commuteImpact.dailyKgCO2Saved > 0;
-  addRow(t('impact.table.currentRow', { mode: commuteImpact.currentLabel }), km, t('impact.table.baseline'), t('impact.table.baseline'));
   addRow(
-    hasSavings ? t('impact.table.cleanerRow', { mode: commuteImpact.newLabel }) : t('impact.table.alreadyLow'),
+    t('impact.table.currentRow', { mode: commuteImpact.currentLabel }),
+    km,
+    t('impact.table.baseline'),
+    t('impact.table.baseline')
+  );
+  addRow(
+    hasSavings
+      ? t('impact.table.cleanerRow', { mode: commuteImpact.newLabel })
+      : t('impact.table.alreadyLow'),
     km,
     `${commuteImpact.dailyKgCO2Saved} kg`,
     `${commuteImpact.monthlyKgCO2Saved} kg`,
@@ -188,36 +261,43 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
   formulaPanel.appendChild(el(doc, 'p', 'formula-code', commuteImpact.formula));
 
   const ul = el(doc, 'ul', 'formula-list');
-  for (const assumption of commuteImpact.assumptions || []) ul.appendChild(el(doc, 'li', '', assumption));
+  for (const assumption of commuteImpact.assumptions || [])
+    ul.appendChild(el(doc, 'li', '', assumption));
   formulaPanel.appendChild(ul);
 
-  toggleBtn.addEventListener('click', () => {
-    const next = toggleBtn.getAttribute('aria-expanded') !== 'true';
-    toggleBtn.setAttribute('aria-expanded', String(next));
-    toggleBtn.textContent = next ? t('impact.disclosure.close') : t('impact.disclosure.open');
-    formulaPanel.hidden = !next;
+  bindDisclosure(toggleBtn, formulaPanel, {
+    getClosedLabel: () => t('impact.disclosure.open'),
+    getOpenLabel: () => t('impact.disclosure.close'),
   });
 
   container.append(toggleBtn, formulaPanel);
 }
 
+/**
+ * Render a plan response using textContent only.
+ * @param {object} data
+ * @param {object} opts
+ * @returns {void}
+ */
 export function renderPlanResult(data, { doc = document, t, lang = 'en' }) {
   const byId = (id) => doc.getElementById(id);
   const planOutput = byId('plan-output');
   if (!planOutput || !data?.aqi || !data?.plan) return;
 
   const { aqi, risk, plan } = data;
-  const bandSlug = aqi.band || 'moderate';
+  const bandSlug = bandFromCategory(aqi.band || aqi.category);
   const bandLabel = t(`aqi.band.${bandSlug}`);
   const place = aqi.placeLabel || t('result.defaultPlace');
 
   byId('plan-heading').textContent = plan.headline;
 
-  const sourceLabel = plan.source === 'ai' ? t('source.ai') : t('source.rules');
-  const dataSourceLabel = aqi.dataSource === 'manual' ? t('aqi.meta.sourceManual') : t('aqi.meta.sourceOpenMeteo');
+  const sourceLabel = plan.copySource === 'ai' ? t('source.ai') : t('source.rules');
+  const dataSourceLabel =
+    aqi.dataSource === 'manual' ? t('aqi.meta.sourceManual') : t('aqi.meta.sourceOpenMeteo');
   const timeStr = formatObservedTime(aqi.observedAt, lang);
   const pm10Part = typeof aqi.pm10 === 'number' ? ` · ${t('aqi.meta.pm10')} ${aqi.pm10} µg/m³` : '';
-  byId('plan-meta-line').textContent = `${sourceLabel} · ${dataSourceLabel} · ${t('aqi.meta.updatedAt')} ${timeStr} · ${t('aqi.meta.dominant')}: ${aqi.dominantPollutant}${pm10Part}`;
+  byId('plan-meta-line').textContent =
+    `${sourceLabel} · ${dataSourceLabel} · ${t('aqi.meta.updatedAt')} ${timeStr} · ${t('aqi.meta.dominant')}: ${aqi.dominantPollutant}${pm10Part}`;
 
   byId('plan-opening').textContent = t(`result.opening.${risk?.vulnerabilityLevel || 'standard'}`, {
     place,
@@ -245,16 +325,30 @@ export function renderPlanResult(data, { doc = document, t, lang = 'en' }) {
     marker.appendChild(createDaypartIcon(doc, slot.daypart));
 
     const header = el(doc, 'div', 'timeline-header');
-    header.append(el(doc, 'h3', 'timeline-title', t(`daypart.${slot.daypart}`)), el(doc, 'span', 'timeline-window', slot.timeWindow));
-    stopLi.append(marker, header, el(doc, 'p', 'timeline-guidance', slot.guidanceKey ? t(slot.guidanceKey) : slot.guidance));
+    header.append(
+      el(doc, 'h3', 'timeline-title', t(`daypart.${slot.daypart}`)),
+      el(doc, 'span', 'timeline-window', slot.timeWindow)
+    );
+    stopLi.append(
+      marker,
+      header,
+      el(doc, 'p', 'timeline-guidance', slot.guidanceKey ? t(slot.guidanceKey) : slot.guidance)
+    );
 
     const slotActions = (slot.actionIds || [])
       .map((id) => itemsById.get(id))
-      .filter((item) => item && (item.category === 'daily_routine' || item.id === 'timed_window_ventilation' || item.id === 'close_windows_evening_night'));
+      .filter(
+        (item) =>
+          item &&
+          (item.category === 'daily_routine' ||
+            item.id === 'timed_window_ventilation' ||
+            item.id === 'close_windows_evening_night')
+      );
 
     if (slotActions.length > 0) {
       const ul = el(doc, 'ul', 'timeline-actions');
-      for (const action of slotActions) ul.appendChild(createActionListItem(doc, action, t, `tl-${slot.daypart}`));
+      for (const action of slotActions)
+        ul.appendChild(createActionListItem(doc, action, t, `tl-${slot.daypart}`));
       stopLi.appendChild(ul);
     }
     timelineList.appendChild(stopLi);
@@ -268,7 +362,8 @@ export function renderPlanResult(data, { doc = document, t, lang = 'en' }) {
       ul = el(doc, 'ul', 'timeline-actions');
       urgentStop.appendChild(ul);
     }
-    for (const urgentItem of anyDaily) ul.prepend(createActionListItem(doc, urgentItem, t, 'tl-urgent'));
+    for (const urgentItem of anyDaily)
+      ul.prepend(createActionListItem(doc, urgentItem, t, 'tl-urgent'));
   }
 
   const fillList = (id, items, prefix) => {

@@ -1,8 +1,3 @@
-/**
- * Controls the hero skyline atmospheric haze strictly through the data-band
- * attribute (zero inline styles, zero JS-set CSS properties).
- */
-
 export const VALID_BANDS = Object.freeze([
   'good',
   'satisfactory',
@@ -21,6 +16,11 @@ const CATEGORY_TO_BAND = Object.freeze({
   Severe: 'severe',
 });
 
+/**
+ * Normalize a CPCB category or slug into a data-band token.
+ * @param {string} category
+ * @returns {string}
+ */
 export function bandFromCategory(category) {
   if (typeof category === 'string' && category in CATEGORY_TO_BAND) {
     return CATEGORY_TO_BAND[category];
@@ -35,6 +35,13 @@ export function bandFromCategory(category) {
   return 'moderate';
 }
 
+/**
+ * Set hero skyline haze via data-band attribute only.
+ * @param {HTMLElement|null} heroEl
+ * @param {string} categoryOrBand
+ * @param {{animate?: boolean}} [opts]
+ * @returns {string}
+ */
 export function setHeroBand(heroEl, categoryOrBand, { animate = false } = {}) {
   if (!heroEl) return 'moderate';
   const band = bandFromCategory(categoryOrBand);

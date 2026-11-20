@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { jest } from '@jest/globals';
 import axe from 'axe-core';
 import { JSDOM } from 'jsdom';
 import { announce, clearFormErrors, showFormErrors } from '../../public/js/a11y.js';
@@ -12,12 +13,8 @@ import { createPlanBuilder } from '../../src/services/planBuilder.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../..');
 const htmlSource = fs.readFileSync(path.join(rootDir, 'public/index.html'), 'utf8');
-const enLocale = JSON.parse(
-  fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8')
-);
-const hiLocale = JSON.parse(
-  fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8')
-);
+const enLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8'));
+const hiLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8'));
 
 function createAppDom() {
   const dom = new JSDOM(htmlSource, { url: 'http://localhost:3000/' });
@@ -50,20 +47,22 @@ describe('Accessibility (WCAG 2.1 AA with axe-core + jsdom)', () => {
     const dom = createAppDom();
     const doc = dom.window.document;
 
+    const personalizePlan = jest.fn(async ({ aqiResult, risk, selectedActions }) => ({
+      headline: enLocale[`fallback.headline.${aqiResult.category}`],
+      summary: enLocale[`fallback.summary.${risk.vulnerabilityLevel}`],
+      items: selectedActions.map((a) => ({
+        actionId: a.id,
+        personalizedText: enLocale[a.textKey],
+        whyItMatters: enLocale[a.impactNoteKey],
+      })),
+      familyTip: enLocale[`fallback.familyTip.${risk.vulnerabilityLevel}`],
+      copySource: 'rules',
+    }));
+
     const builder = createPlanBuilder({
-      geminiSvc: {
+      geminiService: {
         isEnabled: () => false,
-        personalizePlan: async ({ aqiResult, risk, selectedActions }) => ({
-          headline: enLocale[`fallback.headline.${aqiResult.category}`],
-          summary: enLocale[`fallback.summary.${risk.vulnerabilityLevel}`],
-          items: selectedActions.map((a) => ({
-            actionId: a.id,
-            personalizedText: enLocale[a.textKey],
-            whyItMatters: enLocale[a.impactNoteKey],
-          })),
-          familyTip: enLocale[`fallback.familyTip.${risk.vulnerabilityLevel}`],
-          source: 'rules',
-        }),
+        personalizePlan,
       },
     });
 
@@ -81,6 +80,8 @@ describe('Accessibility (WCAG 2.1 AA with axe-core + jsdom)', () => {
         language: 'en',
       },
     });
+
+    expect(personalizePlan).toHaveBeenCalledTimes(1);
 
     setHeroBand(doc.getElementById('hero'), data.aqi.band);
     renderPlanResult(data, { doc, t, lang: 'en' });

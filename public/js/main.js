@@ -1,4 +1,4 @@
-import { announce, clearFormErrors, moveFocus, showFormErrors } from './a11y.js';
+import { announce, bindDisclosure, clearFormErrors, moveFocus, showFormErrors } from './a11y.js';
 import { ClientApiError, geocodeCities, mapErrorToLocaleKey, requestPlan } from './api.js';
 import { setHeroBand } from './haze.js';
 import { applyTranslations, getLanguage, loadLocale, t } from './i18n.js';
@@ -6,6 +6,12 @@ import { renderPlanResult } from './render.js';
 
 const STORAGE_LANG_KEY = 'airwise_lang';
 const STORAGE_THEME_KEY = 'airwise_theme';
+const UI_TIMINGS = Object.freeze({
+  citySearchDebounceMs: 300,
+  listboxBlurCloseMs: 150,
+  geoTimeoutMs: 8000,
+  geoMaxAgeMs: 300000,
+});
 const byId = (id) => document.getElementById(id);
 
 const state = {
@@ -32,7 +38,9 @@ function applyTheme(theme, persist) {
 
 function initTheme() {
   const saved = localStorage.getItem(STORAGE_THEME_KEY);
-  const prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const prefersDark =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(saved === 'dark' || saved === 'light' ? saved : prefersDark ? 'dark' : 'light', false);
   byId('theme-toggle')?.addEventListener('click', () => {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -54,16 +62,13 @@ function hideApiError() {
   if (banner) banner.hidden = true;
 }
 
+let manualDisclosure = null;
+
 function setManualMode(open) {
   state.useManual = open;
-  const panel = byId('manual-panel');
-  const btn = byId('manual-toggle-btn');
-  if (panel) panel.hidden = !open;
-  if (btn) {
-    btn.setAttribute('aria-expanded', String(open));
-    btn.textContent = open ? t('form.manual.toggleHide') : t('form.manual.toggle');
+  if (manualDisclosure) {
+    manualDisclosure.setOpen(open);
   }
-  if (open) byId('manual-pm25')?.focus();
 }
 
 function closeListbox() {
@@ -160,9 +165,13 @@ function initCityCombobox() {
         renderListboxOptions(await geocodeCities(query));
       } catch (err) {
         closeListbox();
-        showApiError(err instanceof ClientApiError ? err.localeKey : mapErrorToLocaleKey({ code: 'GEOCODE_FAILED' }));
+        showApiError(
+          err instanceof ClientApiError
+            ? err.localeKey
+            : mapErrorToLocaleKey({ code: 'GEOCODE_FAILED' })
+        );
       }
-    }, 300);
+    }, UI_TIMINGS.citySearchDebounceMs);
   });
 
   input.addEventListener('keydown', (event) => {
@@ -173,7 +182,11 @@ function initCityCombobox() {
       setActiveOption(state.activeOptionIndex + 1);
     } else if (event.key === 'ArrowUp' && isOpen) {
       event.preventDefault();
-      setActiveOption(state.activeOptionIndex <= 0 ? state.citySuggestions.length - 1 : state.activeOptionIndex - 1);
+      setActiveOption(
+        state.activeOptionIndex <= 0
+          ? state.citySuggestions.length - 1
+          : state.activeOptionIndex - 1
+      );
     } else if (event.key === 'Enter' && isOpen && state.activeOptionIndex >= 0) {
       event.preventDefault();
       selectCityOption(state.citySuggestions[state.activeOptionIndex]);
@@ -182,24 +195,19 @@ function initCityCombobox() {
     }
   });
 
-  input.addEventListener('blur', () => setTimeout(closeListbox, 150));
+  input.addEventListener('blur', () => setTimeout(closeListbox, UI_TIMINGS.listboxBlurCloseMs));
 }
 
 function initGeolocation() {
   const toggleBtn = byId('geo-toggle-btn');
   const panel = byId('geo-consent-panel');
   const statusEl = byId('geo-status');
-  const closeConsent = () => {
-    if (panel) panel.hidden = true;
-    toggleBtn?.setAttribute('aria-expanded', 'false');
-  };
-
-  toggleBtn?.addEventListener('click', () => {
-    const nextOpen = panel?.hidden ?? true;
-    if (panel) panel.hidden = !nextOpen;
-    toggleBtn.setAttribute('aria-expanded', String(nextOpen));
-    if (statusEl) statusEl.textContent = '';
+  const geoDisclosure = bindDisclosure(toggleBtn, panel, {
+    onToggle: () => {
+      if (statusEl) statusEl.textContent = '';
+    },
   });
+  const closeConsent = () => geoDisclosure.setOpen(false);
 
   byId('geo-cancel-btn')?.addEventListener('click', () => {
     closeConsent();
@@ -232,9 +240,15 @@ function initGeolocation() {
       },
       (err) => {
         closeConsent();
-        showApiError(err?.code === 1 ? 'error.GEOLOCATION_DENIED' : 'error.GEOLOCATION_UNAVAILABLE');
+        showApiError(
+          err?.code === 1 ? 'error.GEOLOCATION_DENIED' : 'error.GEOLOCATION_UNAVAILABLE'
+        );
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+      {
+        enableHighAccuracy: false,
+        timeout: UI_TIMINGS.geoTimeoutMs,
+        maximumAge: UI_TIMINGS.geoMaxAgeMs,
+      }
     );
   });
 }
@@ -293,7 +307,11 @@ function collectAndValidateForm() {
 
   const payload = {
     profile: {
-      members: { adults, children: Math.min(10, Math.max(0, children)), elderly: Math.min(10, Math.max(0, elderly)) },
+      members: {
+        adults,
+        children: Math.min(10, Math.max(0, children)),
+        elderly: Math.min(10, Math.max(0, elderly)),
+      },
       hasRespiratoryOrHeartCondition,
       commute,
       commuteKmPerDay,
@@ -347,7 +365,9 @@ async function submitPlan(payload, { focusResult = true } = {}) {
     setLoadingUi(false);
     const emptyState = byId('empty-state');
     if (emptyState && !state.lastPlanData) emptyState.hidden = false;
-    showApiError(err instanceof ClientApiError ? err.localeKey : mapErrorToLocaleKey({ status: 500 }));
+    showApiError(
+      err instanceof ClientApiError ? err.localeKey : mapErrorToLocaleKey({ status: 500 })
+    );
   }
 }
 
@@ -358,13 +378,19 @@ async function handleLanguageToggle() {
   localStorage.setItem(STORAGE_LANG_KEY, nextLang);
 
   byId('lang-toggle')?.setAttribute('aria-pressed', String(nextLang === 'hi'));
-  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', false);
+  applyTheme(
+    document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+    false
+  );
   setManualMode(state.useManual);
   announce(byId('live-status'), t('live.languageChanged'));
 
   if (state.lastRequestPayload) {
     await submitPlan(
-      { ...state.lastRequestPayload, profile: { ...state.lastRequestPayload.profile, language: nextLang } },
+      {
+        ...state.lastRequestPayload,
+        profile: { ...state.lastRequestPayload.profile, language: nextLang },
+      },
       { focusResult: false }
     );
   }
@@ -414,7 +440,14 @@ async function bootstrap() {
   initGeolocation();
   initCommunityActions();
 
-  byId('manual-toggle-btn')?.addEventListener('click', () => setManualMode(!state.useManual));
+  manualDisclosure = bindDisclosure(byId('manual-toggle-btn'), byId('manual-panel'), {
+    getClosedLabel: () => t('form.manual.toggle'),
+    getOpenLabel: () => t('form.manual.toggleHide'),
+    onToggle: (open) => {
+      state.useManual = open;
+      if (open) byId('manual-pm25')?.focus();
+    },
+  });
   byId('error-open-manual-btn')?.addEventListener('click', () => {
     hideApiError();
     setManualMode(true);

@@ -52,7 +52,7 @@ function createTestApp({
         time: ['2026-11-19T13:00', '2026-11-19T14:00', '2026-11-19T15:00'],
         pm2_5: [120, 108, 114],
       },
-      source: 'open-meteo',
+      dataSource: 'open-meteo',
       cached: false,
     })),
     ...airOverrides,
@@ -122,7 +122,7 @@ describe('AirWise API integration & security', () => {
       isSensitiveGroup: true,
     });
     expect(res.body.risk.hasRespiratoryOrHeartCondition).toBeUndefined();
-    expect(res.body.plan.source).toBe('rules');
+    expect(res.body.plan.copySource).toBe('rules');
     expect(res.body.plan.timeline).toHaveLength(5);
     expect(res.body.plan.items.length).toBeGreaterThanOrEqual(8);
     expect(res.body.plan.items.length).toBeLessThanOrEqual(12);
@@ -153,7 +153,7 @@ describe('AirWise API integration & security', () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.plan.source).toBe('rules');
+    expect(res.body.plan.copySource).toBe('rules');
     expect(res.body.plan.items.length).toBeGreaterThan(0);
   });
 
@@ -347,7 +347,7 @@ describe('AirWise API integration & security', () => {
     expect(prodLocalhostBlocked.body.error.code).toBe(ERROR_CODES.ORIGIN_NOT_ALLOWED);
   });
 
-  test('TRUST_PROXY defaults to 1 on Cloud Run / AI Studio preview, false locally, and remains configurable', () => {
+  test('TRUST_PROXY defaults to 1 on Cloud Run / AI Studio preview, accepts false/integers/CIDR, and rejects true or invalid values', () => {
     const cloudRunCfg = loadConfig({ NODE_ENV: 'test', K_SERVICE: 'airwise-svc' });
     expect(cloudRunCfg.trustProxy).toBe(1);
 
@@ -367,14 +367,37 @@ describe('AirWise API integration & security', () => {
     });
     expect(explicitOverrideOff.trustProxy).toBe(false);
 
+    const explicitZero = loadConfig({ NODE_ENV: 'test', TRUST_PROXY: '0' });
+    expect(explicitZero.trustProxy).toBe(0);
+
     const explicitOverrideHops = loadConfig({
       NODE_ENV: 'test',
       TRUST_PROXY: '2',
     });
     expect(explicitOverrideHops.trustProxy).toBe(2);
+
+    const ipv4Cidr = loadConfig({
+      NODE_ENV: 'test',
+      TRUST_PROXY: '10.0.0.0/8, 172.16.0.0/12',
+    });
+    expect(ipv4Cidr.trustProxy).toBe('10.0.0.0/8, 172.16.0.0/12');
+
+    const ipv6Cidr = loadConfig({
+      NODE_ENV: 'test',
+      TRUST_PROXY: '::1/128',
+    });
+    expect(ipv6Cidr.trustProxy).toBe('::1/128');
+
+    expect(() => loadConfig({ NODE_ENV: 'test', TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY/);
+    expect(() => loadConfig({ NODE_ENV: 'test', TRUST_PROXY: 'TRUE' })).toThrow(/TRUST_PROXY/);
+    expect(() => loadConfig({ NODE_ENV: 'test', TRUST_PROXY: '-1' })).toThrow(/TRUST_PROXY/);
+    expect(() => loadConfig({ NODE_ENV: 'test', TRUST_PROXY: '10.0.0.0/33' })).toThrow(
+      /TRUST_PROXY/
+    );
+    expect(() => loadConfig({ NODE_ENV: 'test', TRUST_PROXY: 'loopback' })).toThrow(/TRUST_PROXY/);
   });
 
-  test('enforces rate limiting and returns 429 RATE_LIMITED', async () => {
+  test('enforces rate limiting and routes 429 RATE_LIMITED through errorHandler with requestId', async () => {
     const { app } = createTestApp({
       configOverrides: { RATE_LIMIT_MAX: '2', RATE_LIMIT_WINDOW_MS: '60000' },
     });
@@ -387,5 +410,8 @@ describe('AirWise API integration & security', () => {
     expect(r2.status).toBe(200);
     expect(r3.status).toBe(429);
     expect(r3.body.error.code).toBe(ERROR_CODES.RATE_LIMITED);
+    expect(typeof r3.body.error.requestId).toBe('string');
+    expect(r3.body.error.requestId.length).toBeGreaterThan(10);
+    expect(r3.body.error.message).toBeTruthy();
   });
 });

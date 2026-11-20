@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AirWise — Urban Air Quality Assistant</title>
+    <meta
+      name="description"
+      content="Urban air quality assistant helping North Indian families navigate winter smog with low-emission daily plans, indoor air hacks, and transparent impact estimates."
+    />
+    <meta property="og:title" content="AirWise — Urban Air Quality Assistant" />
+    <meta
+      property="og:description"
+      content="Practical winter smog plans, indoor air steps, and commute impact estimates for North Indian families, in English and Hindi."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content" data-i18n="app.skipToMain">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="#main-content" class="wordmark" data-i18n="app.name">AirWise</a>
+        <div class="header-controls">
+          <button
+            type="button"
+            id="lang-toggle"
+            class="quiet-btn"
+            aria-pressed="false"
+            data-i18n="app.langSwitchText"
+            data-i18n-aria-label="app.langSwitchLabel"
+          >
+            हिन्दी
+          </button>
+          <button
+            type="button"
+            id="theme-toggle"
+            class="quiet-btn"
+            aria-pressed="false"
+            data-i18n="app.themeSwitchDark"
+            data-i18n-aria-label="app.themeSwitchAria"
+          >
+            Night smog
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div id="live-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <main id="main-content">
+      <section id="hero" class="hero" data-band="moderate" aria-labelledby="hero-heading">
+        <div class="skyline-wrap" aria-hidden="true">
+          <svg
+            class="skyline-svg"
+            viewBox="0 0 1440 360"
+            preserveAspectRatio="xMidYMax slice"
+            focusable="false"
+          >
+            <defs>
+              <linearGradient id="airwise-sky-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" class="sky-stop-top" />
+                <stop offset="58%" class="sky-stop-mid" />
+                <stop offset="100%" class="sky-stop-horizon" />
+              </linearGradient>
+            </defs>
+
+            <rect x="0" y="0" width="1440" height="360" fill="url(#airwise-sky-grad)" />
+
+            <!-- Low dusk sun (crisp disc; halo removed for restraint) -->
+            <circle class="skyline-sun" cx="1090" cy="186" r="26" />
+
+            <!-- Layer 1 (Far): distant river shore, soft ridge and distant shikhara -->
+            <g class="skyline-layer skyline-far">
+              <path
+                d="M0 245 Q220 228 420 240 T880 236 T1440 242 L1440 360 L0 360 Z"
+              />
+              <path
+                d="M272 238 L280 198 L285 182 L290 198 L298 238 Z M285 174 L285 182"
+              />
+              <rect x="640" y="214" width="66" height="28" />
+              <rect x="712" y="220" width="44" height="22" />
+              <rect x="1180" y="216" width="84" height="28" />
+            </g>
+
+            <!-- Layer 2 (Mid-far): flat rooftops, water tanks, TV antennas, tall central shikhara -->
+            <g class="skyline-layer skyline-mid-far">
+              <rect x="0" y="246" width="1440" height="114" />
+              <!-- Flat roofs & overhead water tanks -->
+              <rect x="62" y="216" width="92" height="34" />
+              <rect x="78" y="204" width="18" height="12" rx="2" />
+              <path d="M132 216 L132 192 M122 198 L142 198 M126 193 L138 193" stroke="currentColor" stroke-width="1.8" fill="none" />
+              <rect x="164" y="224" width="76" height="26" />
+              <!-- Tall temple shikhara spire with kalasha -->
+              <path
+                d="M366 248 L374 206 C378 182 384 162 392 146 C400 162 406 182 410 206 L418 248 Z"
+              />
+              <circle cx="392" cy="142" r="4.5" />
+              <rect x="391" y="130" width="2" height="10" />
+              <!-- Companion smaller shikhara -->
+              <path
+                d="M422 248 L427 216 C430 200 434 188 439 178 C444 188 448 200 451 216 L456 248 Z"
+              />
+              <rect x="488" y="218" width="110" height="32" />
+              <rect x="556" y="206" width="20" height="12" rx="2" />
+              <rect x="610" y="228" width="88" height="22" />
+              <!-- Right side town rooftops and third spire -->
+              <rect x="810" y="214" width="104" height="36" />
+              <rect x="826" y="202" width="18" height="12" rx="2" />
+              <path d="M894 214 L894 188 M884 195 L904 195" stroke="currentColor" stroke-width="1.8" fill="none" />
+              <path
+                d="M950 248 L958 208 C962 188 967 172 974 158 C981 172 986 188 990 208 L998 248 Z"
+              />
+              <circle cx="974" cy="154" r="4" />
+              <rect x="1030" y="220" width="96" height="30" />
+              <rect x="1220" y="212" width="124" height="38" />
+              <rect x="1296" y="200" width="22" height="12" rx="2" />
+            </g>
+
+            <!-- Layer 3 (Mid-near): trees, courtyard balconies, ghat pavilions -->
+            <g class="skyline-layer skyline-mid-near">
+              <path d="M0 272 L1440 272 L1440 360 L0 360 Z" />
+              <!-- Neem / banyan tree clusters -->
+              <path d="M180 274 C178 248 196 236 216 242 C226 226 254 228 262 246 C278 246 286 260 280 274 Z" />
+              <path d="M698 274 C694 252 710 238 728 242 C738 228 764 232 770 248 C786 248 794 262 786 274 Z" />
+              <path d="M1124 274 C1120 250 1138 236 1156 242 C1168 226 1192 230 1198 248 C1212 250 1218 262 1212 274 Z" />
+              <!-- Near rooftop terrace & parapet -->
+              <rect x="26" y="246" width="122" height="28" />
+              <rect x="520" y="244" width="136" height="30" />
+              <rect x="1270" y="242" width="150" height="32" />
+              <!-- Ghat chhatri dome pavilion -->
+              <rect x="860" y="248" width="54" height="26" />
+              <path d="M854 248 Q887 224 920 248 Z" />
+              <rect x="886" y="220" width="2" height="8" />
+            </g>
+
+            <!-- Layer 4 (Near): stepped river ghat & water line -->
+            <g class="skyline-layer skyline-near">
+              <rect x="0" y="286" width="1440" height="74" />
+              <!-- Ghat descending steps -->
+              <rect x="290" y="274" width="410" height="12" />
+              <rect x="260" y="286" width="470" height="10" />
+              <rect x="230" y="296" width="530" height="10" />
+              <rect x="200" y="306" width="590" height="10" />
+              <!-- Right side steps -->
+              <rect x="840" y="278" width="290" height="10" />
+              <rect x="815" y="288" width="340" height="10" />
+              <rect x="790" y="298" width="390" height="10" />
+              <!-- River waterline bands -->
+              <rect class="skyline-river" x="0" y="316" width="1440" height="44" />
+              <rect class="skyline-river-ripple" x="280" y="328" width="180" height="2" />
+              <rect class="skyline-river-ripple" x="590" y="338" width="240" height="2" />
+              <rect class="skyline-river-ripple" x="980" y="326" width="210" height="2" />
+            </g>
+
+            <!-- Atmospheric haze veil controlled solely via CSS custom property -->
+            <rect class="skyline-haze-veil" x="0" y="0" width="1440" height="360" />
+          </svg>
+        </div>
+
+        <div class="hero-content">
+          <h1 id="hero-heading" class="hero-heading" data-i18n="hero.heading">
+            What can your family do about the air today?
+          </h1>
+          <p class="hero-support" data-i18n="hero.support">
+            Tell us who is at home and how you get around. We will turn today's air reading into a
+            plain, room-by-room and hour-by-hour plan.
+          </p>
+
+          <form id="household-form" class="onboarding-panel" novalidate>
+            <div
+              id="error-summary"
+              class="error-summary"
+              role="alert"
+              tabindex="-1"
+              hidden
+            >
+              <h2 class="error-summary-title" data-i18n="form.errorSummaryHeading">
+                Please check these details before continuing
+              </h2>
+              <ul id="error-summary-list" class="error-summary-list"></ul>
+            </div>
+
+            <fieldset class="sentence-fieldset">
+              <legend class="sr-only" data-i18n="form.legend">About your household</legend>
+
+              <div class="sentence-block">
+                <span class="sentence-text" data-i18n="form.sentence1.part1">We live in</span>
+                <span class="inline-field inline-field-city">
+                  <label class="inline-label" for="city-input" data-i18n="form.label.city">
+                    City or town
+                  </label>
+                  <span class="combobox-wrap">
+                    <input
+                      type="text"
+                      id="city-input"
+                      name="city"
+                      class="inline-input city-input"
+                      autocomplete="off"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="city-listbox"
+                      aria-haspopup="listbox"
+                      data-i18n-placeholder="form.placeholder.city"
+                      placeholder="Type a city, e.g. Mathura"
+                    />
+                    <ul id="city-listbox" class="city-listbox" role="listbox" hidden></ul>
+                  </span>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence1.part2">with</span>
+
+                <span class="inline-field inline-field-num">
+                  <label class="inline-label" for="adults-input" data-i18n="form.label.adults">
+                    Adults
+                  </label>
+                  <input
+                    type="number"
+                    id="adults-input"
+                    name="adults"
+                    class="inline-input num-input"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value="2"
+                    inputmode="numeric"
+                  />
+                </span>
+                <span class="sentence-text" data-i18n="form.sentence1.adultsUnit">,</span>
+
+                <span class="inline-field inline-field-num">
+                  <label class="inline-label" for="children-input" data-i18n="form.label.children">
+                    Children
+                  </label>
+                  <input
+                    type="number"
+                    id="children-input"
+                    name="children"
+                    class="inline-input num-input"
+                    min="0"
+                    max="10"
+                    step="1"
+                    value="0"
+                    inputmode="numeric"
+                  />
+                </span>
+                <span class="sentence-text" data-i18n="form.sentence1.childrenUnit">and</span>
+
+                <span class="inline-field inline-field-num">
+                  <label class="inline-label" for="elderly-input" data-i18n="form.label.elderly">
+                    Elderly
+                  </label>
+                  <input
+                    type="number"
+                    id="elderly-input"
+                    name="elderly"
+                    class="inline-input num-input"
+                    min="0"
+                    max="10"
+                    step="1"
+                    value="0"
+                    inputmode="numeric"
+                  />
+                </span>
+                <span class="sentence-text" data-i18n="form.sentence1.elderlyUnit">
+                  at home. Most days we travel by
+                </span>
+
+                <span class="inline-field">
+                  <label class="inline-label" for="commute-select" data-i18n="form.label.commute">
+                    Travel mode
+                  </label>
+                  <select id="commute-select" name="commute" class="inline-select">
+                    <option value="car" data-i18n="form.commute.car">a petrol or diesel car</option>
+                    <option value="two_wheeler" data-i18n="form.commute.two_wheeler">
+                      a scooter or motorbike
+                    </option>
+                    <option value="auto" data-i18n="form.commute.auto">an auto-rickshaw</option>
+                    <option value="bus" data-i18n="form.commute.bus">a city bus</option>
+                    <option value="metro" data-i18n="form.commute.metro">the metro</option>
+                    <option value="cycle" data-i18n="form.commute.cycle">a bicycle</option>
+                    <option value="walk" data-i18n="form.commute.walk">walking</option>
+                    <option value="work_from_home" data-i18n="form.commute.work_from_home">
+                      working from home
+                    </option>
+                  </select>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence1.kmPrefix">for about</span>
+
+                <span class="inline-field inline-field-num">
+                  <label
+                    class="inline-label"
+                    for="commute-km-input"
+                    data-i18n="form.label.commuteKm"
+                  >
+                    Daily km
+                  </label>
+                  <input
+                    type="number"
+                    id="commute-km-input"
+                    name="commuteKmPerDay"
+                    class="inline-input num-input"
+                    min="0"
+                    max="200"
+                    step="1"
+                    value="12"
+                    inputmode="numeric"
+                  />
+                </span>
+                <span class="sentence-text" data-i18n="form.sentence1.kmUnit">km a day.</span>
+              </div>
+
+              <div class="sentence-block">
+                <span class="sentence-text" data-i18n="form.sentence2.part1">At home we live in</span>
+
+                <span class="inline-field">
+                  <label class="inline-label" for="home-type-select" data-i18n="form.label.homeType">
+                    Home type
+                  </label>
+                  <select id="home-type-select" name="homeType" class="inline-select">
+                    <option value="apartment" data-i18n="form.homeType.apartment">an apartment</option>
+                    <option value="independent_house" data-i18n="form.homeType.independent_house">
+                      an independent house
+                    </option>
+                  </select>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence2.part2">
+                  and cook mostly with
+                </span>
+
+                <span class="inline-field">
+                  <label class="inline-label" for="fuel-select" data-i18n="form.label.cookingFuel">
+                    Cooking fuel
+                  </label>
+                  <select id="fuel-select" name="cookingFuel" class="inline-select">
+                    <option value="lpg" data-i18n="form.fuel.lpg">LPG cylinder</option>
+                    <option value="piped_gas" data-i18n="form.fuel.piped_gas">piped PNG gas</option>
+                    <option value="induction" data-i18n="form.fuel.induction">
+                      an electric induction stove
+                    </option>
+                    <option value="wood_or_biomass" data-i18n="form.fuel.wood_or_biomass">
+                      wood, coal, or biomass chulha
+                    </option>
+                    <option value="kerosene" data-i18n="form.fuel.kerosene">kerosene</option>
+                  </select>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence2.part3">We</span>
+
+                <span class="inline-field">
+                  <label
+                    class="inline-label"
+                    for="purifier-select"
+                    data-i18n="form.label.hasPurifier"
+                  >
+                    Air purifier
+                  </label>
+                  <select id="purifier-select" name="hasPurifier" class="inline-select">
+                    <option value="false" data-i18n="form.purifier.no">
+                      do not have an air purifier
+                    </option>
+                    <option value="true" data-i18n="form.purifier.yes">
+                      have a HEPA air purifier
+                    </option>
+                  </select>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence2.part4">
+                  and prefer actions that fit a
+                </span>
+
+                <span class="inline-field">
+                  <label class="inline-label" for="budget-select" data-i18n="form.label.budget">
+                    Budget
+                  </label>
+                  <select id="budget-select" name="budget" class="inline-select">
+                    <option value="low" data-i18n="form.budget.low">tight</option>
+                    <option value="medium" selected data-i18n="form.budget.medium">moderate</option>
+                    <option value="high" data-i18n="form.budget.high">flexible</option>
+                  </select>
+                </span>
+
+                <span class="sentence-text" data-i18n="form.sentence2.part5">budget.</span>
+              </div>
+            </fieldset>
+
+            <div class="condition-row">
+              <label class="checkbox-label" for="condition-input">
+                <input
+                  type="checkbox"
+                  id="condition-input"
+                  name="hasRespiratoryOrHeartCondition"
+                  class="checkbox-input"
+                  aria-describedby="condition-privacy"
+                />
+                <span data-i18n="form.condition.label">
+                  Someone at home has a breathing or heart condition (such as asthma, COPD, or heart
+                  disease)
+                </span>
+              </label>
+              <p id="condition-privacy" class="privacy-note" data-i18n="form.condition.privacy">
+                Not stored or logged. Used only right now to make your family's plan.
+              </p>
+            </div>
+
+            <div class="location-tools">
+              <button
+                type="button"
+                id="geo-toggle-btn"
+                class="text-action-btn"
+                aria-expanded="false"
+                aria-controls="geo-consent-panel"
+                data-i18n="form.geo.button"
+              >
+                Use my location
+              </button>
+              <span class="sep-dot" aria-hidden="true">·</span>
+              <button
+                type="button"
+                id="manual-toggle-btn"
+                class="text-action-btn"
+                aria-expanded="false"
+                aria-controls="manual-panel"
+                data-i18n="form.manual.toggle"
+              >
+                Enter PM2.5 reading yourself
+              </button>
+            </div>
+
+            <div id="geo-consent-panel" class="disclosure-panel" hidden>
+              <p class="disclosure-text" data-i18n="form.geo.explain">
+                Your browser will ask permission once to read your approximate location for today's
+                air reading. We never store your coordinates.
+              </p>
+              <div class="disclosure-actions">
+                <button
+                  type="button"
+                  id="geo-confirm-btn"
+                  class="secondary-btn"
+                  data-i18n="form.geo.confirm"
+                >
+                  Allow location lookup
+                </button>
+                <button
+                  type="button"
+                  id="geo-cancel-btn"
+                  class="text-action-btn"
+                  data-i18n="form.geo.cancel"
+                >
+                  Cancel
+                </button>
+              </div>
+              <p id="geo-status" class="field-hint" role="status"></p>
+            </div>
+
+            <div id="manual-panel" class="disclosure-panel" hidden>
+              <p class="disclosure-text" data-i18n="form.manual.help">
+                Use a reading from a local monitor or CPCB station if the air service is unavailable
+                or you want to check a specific level.
+              </p>
+              <div class="manual-grid">
+                <div class="manual-field">
+                  <label class="inline-label" for="manual-pm25" data-i18n="form.manual.pm25Label">
+                    PM2.5 (µg/m³)
+                  </label>
+                  <input
+                    type="number"
+                    id="manual-pm25"
+                    name="manualPm25"
+                    class="inline-input"
+                    min="0"
+                    max="1500"
+                    step="0.1"
+                    inputmode="decimal"
+                  />
+                </div>
+                <div class="manual-field">
+                  <label class="inline-label" for="manual-pm10" data-i18n="form.manual.pm10Label">
+                    PM10 (µg/m³, optional)
+                  </label>
+                  <input
+                    type="number"
+                    id="manual-pm10"
+                    name="manualPm10"
+                    class="inline-input"
+                    min="0"
+                    max="2000"
+                    step="0.1"
+                    inputmode="decimal"
+                  />
+                </div>
+                <div class="manual-field">
+                  <label class="inline-label" for="manual-place" data-i18n="form.manual.placeLabel">
+                    Place name (optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="manual-place"
+                    name="manualPlace"
+                    class="inline-input"
+                    maxlength="80"
+                    data-i18n-placeholder="form.manual.placePlaceholder"
+                    placeholder="e.g. Mathura"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="submit-row">
+              <button type="submit" id="submit-btn" class="primary-btn" data-i18n="form.submit">
+                Make our plan
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="results-region" class="reading-column results-region" aria-label="Air quality plan">
+        <div id="api-error-banner" class="api-error-banner" role="alert" hidden>
+          <p id="api-error-text" class="api-error-text"></p>
+          <button
+            type="button"
+            id="error-open-manual-btn"
+            class="text-action-btn"
+            data-i18n="form.manual.toggle"
+          >
+            Enter PM2.5 reading yourself
+          </button>
+        </div>
+
+        <div id="empty-state" class="state-block">
+          <h2 class="state-heading" data-i18n="empty.heading">Your family plan will appear here</h2>
+          <p class="state-body" data-i18n="empty.body">
+            Pick your town or enter a PM2.5 number above, then select Make our plan to see your
+            day-by-day schedule, home air checklist, and commute savings.
+          </p>
+        </div>
+
+        <div id="loading-state" class="state-block" hidden>
+          <h2 class="state-heading" data-i18n="loading.heading">
+            Building your plan for today's air
+          </h2>
+          <p class="state-body" data-i18n="loading.body">
+            Checking the CPCB air band, matching steps to your household, and preparing plain
+            guidance.
+          </p>
+        </div>
+
+        <article id="plan-output" class="plan-output" hidden>
+          <header class="plan-summary-header">
+            <h2 id="plan-heading" class="plan-headline" tabindex="-1"></h2>
+            <p id="plan-meta-line" class="meta-line"></p>
+            <p id="plan-opening" class="plan-opening"></p>
+
+            <div id="aqi-scale-container" class="aqi-scale-wrap"></div>
+
+            <p id="plan-summary" class="plan-summary-copy"></p>
+            <p id="plan-family-tip" class="family-tip"></p>
+          </header>
+
+          <section class="plan-section" aria-labelledby="day-heading">
+            <h2 id="day-heading" class="section-heading" data-i18n="section.day.heading">
+              Your day
+            </h2>
+            <p id="day-pattern-note" class="section-note"></p>
+            <ol id="timeline-list" class="timeline-list"></ol>
+          </section>
+
+          <section class="plan-section" aria-labelledby="indoor-heading">
+            <h2 id="indoor-heading" class="section-heading" data-i18n="section.indoor.heading">
+              Inside your home
+            </h2>
+            <ul id="indoor-list" class="calm-list"></ul>
+          </section>
+
+          <section class="plan-section" aria-labelledby="switches-heading">
+            <h2 id="switches-heading" class="section-heading" data-i18n="section.switches.heading">
+              Switches that add up
+            </h2>
+            <ul id="sustainable-list" class="calm-list"></ul>
+            <div id="commute-impact-wrap" class="impact-wrap"></div>
+          </section>
+
+          <section class="plan-section" aria-labelledby="neighbourhood-heading">
+            <h2
+              id="neighbourhood-heading"
+              class="section-heading"
+              data-i18n="section.neighbourhood.heading"
+            >
+              For your neighbourhood
+            </h2>
+            <ul id="community-list" class="calm-list"></ul>
+            <div class="community-actions no-print">
+              <button
+                type="button"
+                id="print-btn"
+                class="secondary-btn"
+                data-i18n="community.printButton"
+              >
+                Print one page for the notice board
+              </button>
+              <button
+                type="button"
+                id="share-btn"
+                class="text-action-btn"
+                data-i18n="community.shareButton"
+              >
+                Share summary
+              </button>
+              <span id="share-feedback" class="field-hint" role="status"></span>
+            </div>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="reading-column footer-inner">
+        <p class="footer-credits" data-i18n="footer.credits">
+          Air quality and city data: Open-Meteo (modelled data, not ground CPCB monitors). Language
+          personalisation when enabled: Google Gemini.
+        </p>
+        <p class="footer-disclaimer" data-i18n="footer.disclaimer">
+          AirWise offers practical air-quality guidance and approximate estimates, not medical
+          advice. If anyone in your home has trouble breathing, wheezing, chest tightness, or
+          worsening symptoms, contact a doctor.
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>

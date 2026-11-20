@@ -1,0 +1,6 @@
+{
+  "name": "AirWise",
+  "description": "Urban air quality assistant helping North Indian families navigate winter smog with low-emission daily plans, indoor air hacks, and transparent impact estimates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

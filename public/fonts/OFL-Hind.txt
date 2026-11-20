@@ -1,0 +1,11 @@
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+
+Font: Hind (Latin & Devanagari subsets, weights 400 and 600, woff2)
+Copyright 2014 Indian Type Foundry (info@indiantypefoundry.com)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+the Font Software, to use, study, copy, merge, embed, modify, redistribute, and
+sell modified and unmodified copies of the Font Software, subject to the full
+terms of the SIL Open Font License 1.1 (https://openfontlicense.org).
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

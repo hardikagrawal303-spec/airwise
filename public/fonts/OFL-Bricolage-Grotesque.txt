@@ -1,0 +1,11 @@
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+
+Font: Bricolage Grotesque (Latin subset, woff2)
+Copyright 2023 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+the Font Software, to use, study, copy, merge, embed, modify, redistribute, and
+sell modified and unmodified copies of the Font Software, subject to the full
+terms of the SIL Open Font License 1.1 (https://openfontlicense.org).
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

@@ -1,0 +1,317 @@
+{
+  "app.name": "AirWise",
+  "app.skipToMain": "Skip to main content",
+  "app.langSwitchLabel": "Switch language to Hindi",
+  "app.langSwitchText": "हिन्दी",
+  "app.themeSwitchLight": "Light",
+  "app.themeSwitchDark": "Night smog",
+  "app.themeSwitchAria": "Toggle dark night smog theme",
+
+  "hero.heading": "What can your family do about the air today?",
+  "hero.support": "Tell us who is at home and how you get around. We will turn today's air reading into a plain, room-by-room and hour-by-hour plan.",
+
+  "form.legend": "About your household",
+  "form.sentence1.part1": "We live in",
+  "form.sentence1.part2": "with",
+  "form.sentence1.adultsUnit": ",",
+  "form.sentence1.childrenUnit": "and",
+  "form.sentence1.elderlyUnit": "at home. Most days we travel by",
+  "form.sentence1.kmPrefix": "for about",
+  "form.sentence1.kmUnit": "km a day.",
+  "form.sentence2.part1": "At home we live in",
+  "form.sentence2.part2": "and cook mostly with",
+  "form.sentence2.part3": "We",
+  "form.sentence2.part4": "and prefer actions that fit a",
+  "form.sentence2.part5": "budget.",
+
+  "form.label.city": "City or town",
+  "form.placeholder.city": "Type a city, e.g. Mathura",
+  "form.label.adults": "Adults",
+  "form.label.children": "Children",
+  "form.label.elderly": "Elderly",
+  "form.label.commute": "Travel mode",
+  "form.label.commuteKm": "Daily km",
+  "form.label.homeType": "Home type",
+  "form.label.cookingFuel": "Cooking fuel",
+  "form.label.hasPurifier": "Air purifier",
+  "form.label.budget": "Budget",
+
+  "form.commute.car": "a petrol or diesel car",
+  "form.commute.two_wheeler": "a scooter or motorbike",
+  "form.commute.auto": "an auto-rickshaw",
+  "form.commute.bus": "a city bus",
+  "form.commute.metro": "the metro",
+  "form.commute.cycle": "a bicycle",
+  "form.commute.walk": "walking",
+  "form.commute.work_from_home": "working from home",
+
+  "form.homeType.apartment": "an apartment",
+  "form.homeType.independent_house": "an independent house",
+
+  "form.fuel.lpg": "LPG cylinder",
+  "form.fuel.piped_gas": "piped PNG gas",
+  "form.fuel.induction": "an electric induction stove",
+  "form.fuel.wood_or_biomass": "wood, coal, or biomass chulha",
+  "form.fuel.kerosene": "kerosene",
+
+  "form.purifier.no": "do not have an air purifier",
+  "form.purifier.yes": "have a HEPA air purifier",
+
+  "form.budget.low": "tight",
+  "form.budget.medium": "moderate",
+  "form.budget.high": "flexible",
+
+  "form.condition.label": "Someone at home has a breathing or heart condition (such as asthma, COPD, or heart disease)",
+  "form.condition.privacy": "Not stored or logged. Used only right now to make your family's plan.",
+
+  "form.geo.button": "Use my location",
+  "form.geo.explain": "Your browser will ask permission once to read your approximate location for today's air reading. We never store your coordinates.",
+  "form.geo.confirm": "Allow location lookup",
+  "form.geo.cancel": "Cancel",
+  "form.geo.locating": "Finding your location...",
+  "form.geo.found": "Using your current location",
+
+  "form.manual.toggle": "Enter PM2.5 reading yourself",
+  "form.manual.toggleHide": "Use city search instead",
+  "form.manual.pm25Label": "PM2.5 (µg/m³)",
+  "form.manual.pm10Label": "PM10 (µg/m³, optional)",
+  "form.manual.placeLabel": "Place name (optional)",
+  "form.manual.placePlaceholder": "e.g. Mathura",
+  "form.manual.help": "Use a reading from a local monitor or CPCB station if the air service is unavailable or you want to check a specific level.",
+
+  "form.submit": "Make our plan",
+  "form.submitting": "Making your plan...",
+
+  "form.errorSummaryHeading": "Please check these details before continuing",
+  "form.error.locationRequired": "Choose a city from the list, use your location, or enter a PM2.5 reading yourself.",
+  "form.error.pm25Invalid": "Enter a PM2.5 number between 0 and 1500.",
+  "form.error.pm10Invalid": "Enter a PM10 number between 0 and 2000, or leave it blank.",
+  "form.error.adultsInvalid": "Enter at least 1 adult (up to 10).",
+  "form.error.kmInvalid": "Enter a daily distance between 0 and 200 km.",
+
+  "search.noResults": "No matching towns found. Try another spelling or enter PM2.5 manually.",
+  "search.searching": "Searching towns...",
+
+  "empty.heading": "Your family plan will appear here",
+  "empty.body": "Pick your town or enter a PM2.5 number above, then select Make our plan to see your day-by-day schedule, home air checklist, and commute savings.",
+
+  "loading.heading": "Building your plan for today's air",
+  "loading.body": "Checking the CPCB air band, matching steps to your household, and preparing plain guidance.",
+
+  "live.planReady": "Plan ready.",
+  "live.loading": "Making your plan. Please wait.",
+  "live.languageChanged": "Language switched to English.",
+
+  "source.ai": "Personalised by AI",
+  "source.rules": "Standard guidance",
+
+  "aqi.band.good": "Good",
+  "aqi.band.satisfactory": "Satisfactory",
+  "aqi.band.moderate": "Moderate",
+  "aqi.band.poor": "Poor",
+  "aqi.band.very-poor": "Very Poor",
+  "aqi.band.severe": "Severe",
+
+  "aqi.scaleLabel": "Indian CPCB air quality scale",
+  "aqi.currentMarker": "Current",
+  "aqi.meta.sourceOpenMeteo": "Data from Open-Meteo air model (not a ground CPCB station)",
+  "aqi.meta.sourceManual": "Calculated from the PM reading you entered",
+  "aqi.meta.updatedAt": "Updated",
+  "aqi.meta.dominant": "Main pollutant",
+  "aqi.meta.pm25": "PM2.5",
+  "aqi.meta.pm10": "PM10",
+  "aqi.meta.aqi": "CPCB AQI",
+
+  "result.opening.standard": "{place} right now: PM2.5 is {pm25} µg/m³, which is {band} (AQI {aqi}). Here is what makes the biggest difference for your household today.",
+  "result.opening.elevated": "{place} right now: PM2.5 is {pm25} µg/m³, which is {band} (AQI {aqi}). Because your home includes people who are more sensitive to smog, focus on cleaner hours and tight indoor air today.",
+  "result.opening.high": "{place} right now: PM2.5 is {pm25} µg/m³, which is {band} (AQI {aqi}). For your family that means keeping outdoor time short, sealing indoor rooms, and watching closely for symptoms.",
+  "result.defaultPlace": "Your area",
+
+  "section.day.heading": "Your day",
+  "section.day.patternNote": "General winter smog pattern for North India, not a local forecast.",
+  "section.day.hourlyNote": "Based on modelled hourly PM2.5 for the next 24 hours. Cleanest window: {window}.",
+  "section.indoor.heading": "Inside your home",
+  "section.switches.heading": "Switches that add up",
+  "section.neighbourhood.heading": "For your neighbourhood",
+
+  "daypart.early_morning": "Early morning",
+  "daypart.school_work_run": "School and work run",
+  "daypart.midday": "Midday",
+  "daypart.evening": "Evening",
+  "daypart.night": "Night",
+
+  "timeslots.pattern_disclaimer": "General North Indian winter inversion pattern (not a local forecast): air is usually heaviest in early morning and late evening, and slightly lighter between 1 pm and 4 pm.",
+  "timeslots.hourly_note": "Based on modelled hourly PM2.5 for the next 24 hours; actual street-level readings can vary.",
+
+  "timeslots.early_morning.moderate": "Cool morning air often traps dust and smoke near the ground. Check the AQI before brisk outdoor walks.",
+  "timeslots.early_morning.high": "Winter inversion traps the heaviest smog before sunrise. Keep morning walks and exercise indoors today.",
+  "timeslots.school_work_run.moderate": "Road traffic peaks during school and office hours. Choose side streets over heavy main roads where you can.",
+  "timeslots.school_work_run.high": "Traffic exhaust mixes with trapped morning smog. Wear a fitted N95 mask outside and keep car windows shut on recirculate.",
+  "timeslots.midday.moderate": "Midday sunlight usually lifts trapped smog slightly. Good window to air out rooms briefly and run outdoor errands.",
+  "timeslots.midday.high": "Air is still polluted, though often lighter than morning or night. Keep any necessary outdoor errands short and air rooms only for 10 to 15 minutes if outdoor air eases.",
+  "timeslots.evening.moderate": "Temperatures drop after sunset and smoke begins settling again. Close windows early and turn on the kitchen exhaust while cooking.",
+  "timeslots.evening.high": "Keep windows and balcony doors shut from early evening. Move children's play indoors and avoid incense or indoor burning.",
+  "timeslots.night.moderate": "Keep sleeping rooms dust-free with wet mopping done earlier in the day and close street-facing windows.",
+  "timeslots.night.high": "Nighttime inversion holds smog low until morning. Seal door gaps, run your purifier or supervised fan-filter in the bedroom, and keep windows closed.",
+
+  "action.showWhy": "Show why",
+  "action.hideWhy": "Hide why",
+  "action.cost.free": "Free",
+  "action.cost.low": "Under Rs 500",
+  "action.cost.medium": "Moderate cost",
+  "action.cost.high": "Higher upfront cost",
+  "action.effort.easy": "Takes a few minutes",
+  "action.effort.moderate": "Takes a little planning",
+  "action.effort.hard": "Longer-term switch",
+  "action.noTimelineItems": "No specific extra step needed in this slot beyond the guidance above.",
+
+  "impact.table.caption": "Commute comparison (estimate)",
+  "impact.table.colChoice": "Travel choice",
+  "impact.table.colDistance": "Daily distance",
+  "impact.table.colDaily": "CO2 saved per day (estimate)",
+  "impact.table.colMonthly": "CO2 saved per month (estimate)",
+  "impact.table.currentRow": "Current: {mode}",
+  "impact.table.cleanerRow": "Cleaner option: {mode}",
+  "impact.table.baseline": "Baseline",
+  "impact.table.alreadyLow": "Your daily commute is already low-emission.",
+  "impact.disclosure.open": "How we worked this out",
+  "impact.disclosure.close": "Hide how we worked this out",
+  "impact.estimateNote": "Every figure above is an estimate based on approximate Indian urban transport averages.",
+
+  "community.printButton": "Print one page for the notice board",
+  "community.shareButton": "Share summary",
+  "community.shareCopied": "Summary copied to share.",
+
+  "footer.credits": "Air quality and city data: Open-Meteo (modelled data, not ground CPCB monitors). Language personalisation when enabled: Google Gemini.",
+  "footer.disclaimer": "AirWise offers practical air-quality guidance and approximate estimates, not medical advice. If anyone in your home has trouble breathing, wheezing, chest tightness, or worsening symptoms, contact a doctor.",
+
+  "fallback.headline.Good": "Air is relatively clear today; keep simple clean-air habits going",
+  "fallback.headline.Satisfactory": "Air is satisfactory today; watch morning and evening smoke",
+  "fallback.headline.Moderate": "Moderate smog today; time your outdoor hours carefully",
+  "fallback.headline.Poor": "Poor air today; protect lungs outdoors and seal indoor rooms",
+  "fallback.headline.Very Poor": "Very Poor air today; stay indoors during peak smog hours",
+  "fallback.headline.Severe": "Severe smog today; stay indoors and protect sensitive family members",
+
+  "fallback.summary.standard": "Follow the cleaner afternoon window for errands, keep evening indoor air closed and smoke-free, and cut tailpipe and burning smoke where you can.",
+  "fallback.summary.elevated": "Because children, older adults, or sensitive members live in your home, keep outdoor exposure short, close windows by early evening, and rely on wet cleaning indoors.",
+  "fallback.summary.high": "Today's air poses a heavy load for sensitive lungs. Keep outdoor trips strictly essential with a fitted N95 mask, keep one sleeping room well sealed, and watch for breathing symptoms.",
+
+  "fallback.familyTip.standard": "Check the AQI once at 7 am and once at 1 pm before deciding when to open windows or step out.",
+  "fallback.familyTip.elevated": "Keep fitted N95 masks near the front door so children and older family members never have to search for one.",
+  "fallback.familyTip.high": "Keep regular inhalers or prescribed medicines within reach, and check in with a doctor promptly if coughing or wheezing worsens.",
+
+  "error.AIR_UPSTREAM_FAILED": "We couldn't reach the air-quality service. Enter a PM2.5 reading yourself, or try again in a minute.",
+  "error.GEOCODE_FAILED": "We couldn't search cities right now. Enter a PM2.5 reading yourself or try again shortly.",
+  "error.VALIDATION_FAILED": "Some household details look out of range. Check the highlighted fields and try again.",
+  "error.RATE_LIMITED": "Too many requests in a short time. Wait a minute and try making your plan again.",
+  "error.ORIGIN_NOT_ALLOWED": "This request was blocked because it came from an unrecognised address. Reload the page directly from the app URL.",
+  "error.PAYLOAD_TOO_LARGE": "The form submission was unexpectedly large. Refresh the page and try again.",
+  "error.NOT_FOUND": "That air-quality endpoint could not be found. Refresh the page and try again.",
+  "error.INTERNAL_ERROR": "Something went wrong while building your plan. Try again in a minute, or enter a PM2.5 reading manually.",
+  "error.NETWORK_OFFLINE": "You appear to be offline. Reconnect to the internet and try again.",
+  "error.REQUEST_TIMEOUT": "The server took too long to reply. Try again in a minute or enter a PM2.5 reading yourself.",
+  "error.GEOLOCATION_DENIED": "Location access was not granted. Type your city name above or enter a PM2.5 reading yourself.",
+  "error.GEOLOCATION_UNAVAILABLE": "Your browser could not determine your location. Type your city name above instead.",
+
+  "action.seek_medical_care_if_symptoms": "Keep prescribed inhalers or medicines handy, and seek medical care promptly if anyone develops wheezing, breathlessness, or chest tightness.",
+  "impact.seek_medical_care_if_symptoms": "Early medical care can help reduce the risk of a severe flare-up during Poor to Severe smog days.",
+
+  "action.shift_outdoor_exercise": "Shift outdoor walks or runs from early morning to mid-afternoon when trapped smoke lifts slightly.",
+  "impact.shift_outdoor_exercise": "Exercising during cleaner hours can help reduce how many fine particles you breathe deeply into your lungs.",
+
+  "action.move_exercise_indoors": "Move morning walks, yoga, and workouts indoors today instead of exercising in heavy smog.",
+  "impact.move_exercise_indoors": "Heavy breathing outdoors pulls fine PM2.5 deeper into the lungs; staying inside can help reduce that exposure.",
+
+  "action.check_aqi_before_school_run": "Check the AQI reading before the morning school run or walk so you know whether masks are needed.",
+  "impact.check_aqi_before_school_run": "A quick check helps you adjust outdoor time and masks before stepping into peak morning smog.",
+
+  "action.wear_n95_outdoors": "Wear a properly fitted N95 or FFP2 mask outdoors; pinch the nose clip tight (cloth and surgical masks filter far less).",
+  "impact.wear_n95_outdoors": "A well-sealed N95 mask is lab-rated to filter at least 95% of test particles and can help reduce outdoor intake, though fit matters.",
+
+  "action.avoid_heavy_traffic_routes": "Walk or wait on quieter side lanes rather than standing beside idling traffic on main roads.",
+  "impact.avoid_heavy_traffic_routes": "Particle levels spike right next to tailpipes; stepping one lane away can help reduce short-term exposure.",
+
+  "action.use_recirculate_in_car": "Keep car windows rolled up and set the AC to cabin recirculate mode on smoggy roads.",
+  "impact.use_recirculate_in_car": "Recirculate mode cuts the amount of outside exhaust entering the cabin; crack a window briefly on long drives to avoid CO2 buildup.",
+
+  "action.batch_errands_midday": "Combine grocery, pharmacy, and bank errands into one short midday trip instead of multiple morning and evening trips.",
+  "impact.batch_errands_midday": "Fewer trips during cleaner afternoon hours can help reduce both your exposure time and local vehicle emissions.",
+
+  "action.limit_children_outdoor_play": "Keep children's outdoor play short today and switch active games indoors when smog is Poor or worse.",
+  "impact.limit_children_outdoor_play": "Children breathe faster per kilogram of body weight; shorter outdoor play on heavy smog days can help reduce their particle intake.",
+
+  "action.rinse_face_after_commute": "Wash hands and face, and rinse your nose with plain saline water after returning from a smoggy commute.",
+  "impact.rinse_face_after_commute": "Washing off settled dust and soot can help reduce nose and throat irritation after time on the road.",
+
+  "action.timed_window_ventilation": "Keep windows shut during heavy morning and evening smog, and open them for 10 to 15 minutes around midday when outdoor air is lightest.",
+  "impact.timed_window_ventilation": "Brief midday airing clears stale indoor air without letting peak inversion smog flood the rooms.",
+
+  "action.close_windows_evening_night": "Close windows and balcony doors by 6 pm before cool evening air traps smoke close to the ground.",
+  "impact.close_windows_evening_night": "Closing up before evening inversion starts can help reduce indoor PM2.5 climbing overnight.",
+
+  "action.seal_door_window_gaps": "Fit inexpensive foam draught strips or place a rolled damp towel along the bottom gap of exterior doors.",
+  "impact.seal_door_window_gaps": "Blocking visible gaps slows outdoor smog from drifting inside overnight.",
+
+  "action.run_hepa_purifier": "Run your HEPA air purifier in the room where the family spends the most time (and the bedroom at night), and vacuum the pre-filter weekly.",
+  "impact.run_hepa_purifier": "A right-sized True HEPA filter in a closed room can help reduce indoor PM2.5 steadily over the evening and night.",
+
+  "action.diy_box_fan_filter": "As a low-cost stopgap without a purifier, tape a MERV-13 or HEPA filter snugly to the back of a box fan and run it only while supervised.",
+  "impact.diy_box_fan_filter": "This stopgap fan-filter can help reduce indoor dust and smoke particles, but use it supervised, keep it away from water, and check that the motor stays cool.",
+
+  "action.wet_mop_no_dry_sweep": "Wet-mop floors and wipe surfaces with a damp cloth instead of dry broom sweeping or feather dusting.",
+  "impact.wet_mop_no_dry_sweep": "Dry sweeping kicks settled fine dust right back into the air your family breathes; wet mopping traps it.",
+
+  "action.avoid_incense_candles": "Skip agarbatti, dhoop, scented candles, mosquito coils, and any indoor burning on polluted days.",
+  "impact.avoid_incense_candles": "Even one stick of incense or a mosquito coil releases concentrated indoor PM2.5 in a closed room.",
+
+  "action.run_kitchen_exhaust": "Switch on the kitchen chimney or exhaust fan (or open the kitchen window briefly) whenever frying or tadka creates smoke.",
+  "impact.run_kitchen_exhaust": "Venting cooking fumes right at the stove can help reduce sharp indoor PM2.5 spikes in the rest of the house.",
+
+  "action.keep_bedroom_clean_zone": "Set up one well-sealed bedroom as a cleaner sleeping room for children, elderly members, or anyone with breathing sensitivity.",
+  "impact.keep_bedroom_clean_zone": "Keeping one room tightly closed gives lungs 7 to 8 calmer hours overnight.",
+
+  "action.indoor_plants_realistic_note": "Keep indoor plants if you enjoy them, but remember houseplants do not meaningfully purify room air during smog.",
+  "impact.indoor_plants_realistic_note": "Knowing plants are decorative helps you focus effort on steps that actually lower indoor particles, like sealing gaps and timed ventilation.",
+
+  "action.switch_to_metro_or_bus": "Take the metro, city bus, or shared ride instead of driving alone on days when the route works for you.",
+  "impact.switch_to_metro_or_bus": "Moving trips from a private car or scooter to metro or bus can help reduce daily tailpipe emissions and road dust.",
+
+  "action.carpool_school_office": "Share the school or office car run with one or two neighbouring families on the same route.",
+  "impact.carpool_school_office": "Cutting one car trip in half reduces fuel spend and tailpipe smoke right around your colony and school gate.",
+
+  "action.walk_cycle_short_trips": "On Good to Moderate days, walk or cycle for short neighbourhood errands under 2 km away from busy main roads.",
+  "impact.walk_cycle_short_trips": "Replacing short cold-engine vehicle starts cuts high per-kilometre exhaust smoke near homes.",
+
+  "action.switch_clean_cooking_fuel": "Transition from wood, biomass, or kerosene stoves to LPG or electric induction cooking wherever possible (check Ujjwala or local subsidy options).",
+  "impact.switch_clean_cooking_fuel": "Switching away from solid or kerosene fuels can help reduce heavy indoor smoke right where the family cooks and eats.",
+
+  "action.no_waste_leaf_burning": "Never burn dry leaves, garden clippings, or household trash; compost leaves or hand them to municipal collection.",
+  "impact.no_waste_leaf_burning": "Open leaf and garbage fires release dense local PM2.5 that lingers in the street all evening.",
+
+  "action.avoid_diesel_generator": "Avoid running small diesel generators during power cuts; use inverter-battery backup or discuss shared cleaner backup with your RWA.",
+  "impact.avoid_diesel_generator": "Diesel generators emit concentrated soot right at ground level inside residential blocks.",
+
+  "action.engine_off_at_red_lights": "Switch off your vehicle engine at red lights and railway crossings when waiting longer than 20 seconds.",
+  "impact.engine_off_at_red_lights": "Cutting idle time saves fuel and reduces concentrated exhaust clouds at crowded intersections.",
+
+  "action.combine_deliveries_work_remote": "Batch online deliveries into fewer drop-offs and work from home when your workplace permits on heavy smog days.",
+  "impact.combine_deliveries_work_remote": "Fewer daily road trips lower both personal traffic exposure and neighbourhood tailpipe emissions.",
+
+  "action.report_open_burning": "Report open garbage, leaf, or construction-waste burning to your municipal helpline or the official CPCB Sameer app.",
+  "impact.report_open_burning": "Prompt civic reporting helps stop local smoke hotspots that affect entire colonies overnight.",
+
+  "action.organize_rwa_school_smog_plan": "Suggest a simple winter smog plan with your RWA or school: staggered drop-offs, no waste burning, and covered construction sand.",
+  "impact.organize_rwa_school_smog_plan": "Coordinated colony rules can help reduce local dust and idling smoke far more than one household acting alone.",
+
+  "action.check_on_elderly_neighbours": "Call or check in on elderly or homebound neighbours on Very Poor and Severe days to help with groceries or pharmacy runs.",
+  "impact.check_on_elderly_neighbours": "Helping older neighbours avoid stepping out during severe smog can help reduce their exposure.",
+
+  "action.share_weekly_family_plan": "Print a one-page summary of today's guidance for the apartment notice board or share it on your colony WhatsApp group.",
+  "impact.share_weekly_family_plan": "Clear, calm instructions help neighbours skip myths and adopt practical clean-air habits together.",
+
+  "action.request_water_sprinkling_dust_control": "Ask your RWA or ward office to cover loose construction material and wet-clean dusty colony lanes instead of dry sweeping.",
+  "impact.request_water_sprinkling_dust_control": "Keeping road and construction dust damp can help reduce coarse PM10 clouds blowing into ground-floor homes.",
+
+  "action.advocate_no_idling_school_gate": "Encourage parents and school vans to switch off engines while waiting outside the school gate.",
+  "impact.advocate_no_idling_school_gate": "Stopping engine idling at school gates lowers exhaust right at children's breathing height."
+}

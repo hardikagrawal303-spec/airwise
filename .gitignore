@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Build & test outputs
+build/
+dist/
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS & editor files
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Browser verification artifacts
+.playwright-cli/
+.aistudio/
+public/assets/aistudio/
+bun.lock
+
+

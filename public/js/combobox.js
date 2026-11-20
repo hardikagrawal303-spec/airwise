@@ -5,18 +5,28 @@ import { ClientApiError, geocodeCities, mapErrorToLocaleKey } from './api.js';
  * @param {object} opts
  * @returns {{ selectCity: Function, closeListbox: Function }}
  */
-export function initCityCombobox({ state, t, onError, debounceMs, blurCloseMs }) {
+export function initCityCombobox({ state, t, onError, debounceMs }) {
   const input = document.getElementById('city-input');
   const listbox = document.getElementById('city-listbox');
+  const statusEl = document.getElementById('city-status');
+  const wrap = input?.closest('.combobox-wrap') || input;
   let suggestions = [];
   let activeIndex = -1;
   let debounceTimer = null;
+
+  function hideStatus() {
+    if (statusEl) {
+      statusEl.hidden = true;
+      statusEl.textContent = '';
+    }
+  }
 
   function closeListbox() {
     if (listbox) {
       listbox.hidden = true;
       listbox.textContent = '';
     }
+    hideStatus();
     if (input) {
       input.setAttribute('aria-expanded', 'false');
       input.removeAttribute('aria-activedescendant');
@@ -40,25 +50,30 @@ export function initCityCombobox({ state, t, onError, debounceMs, blurCloseMs })
     activeIndex = -1;
 
     if (statusText || items.length === 0) {
-      const li = document.createElement('li');
-      li.className = 'city-option-status';
-      li.textContent = statusText || t('search.noResults');
-      listbox.appendChild(li);
-    } else {
-      items.forEach((city, idx) => {
-        const li = document.createElement('li');
-        li.id = `city-opt-${idx}`;
-        li.className = 'city-option';
-        li.setAttribute('role', 'option');
-        li.setAttribute('aria-selected', 'false');
-        li.textContent = city.label;
-        li.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          selectCity(city);
-        });
-        listbox.appendChild(li);
-      });
+      listbox.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      if (statusEl) {
+        statusEl.textContent = statusText || t('search.noResults');
+        statusEl.hidden = false;
+      }
+      return;
     }
+
+    hideStatus();
+    items.forEach((city, idx) => {
+      const li = document.createElement('li');
+      li.id = `city-opt-${idx}`;
+      li.className = 'city-option';
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
+      li.textContent = city.label;
+      li.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectCity(city);
+      });
+      listbox.appendChild(li);
+    });
     listbox.hidden = false;
     input.setAttribute('aria-expanded', 'true');
   }
@@ -116,6 +131,10 @@ export function initCityCombobox({ state, t, onError, debounceMs, blurCloseMs })
     }
   });
 
-  input.addEventListener('blur', () => setTimeout(closeListbox, blurCloseMs));
+  wrap?.addEventListener('focusout', (e) => {
+    if (!e.relatedTarget || !wrap.contains(e.relatedTarget)) {
+      closeListbox();
+    }
+  });
   return { selectCity, closeListbox };
 }

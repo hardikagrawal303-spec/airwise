@@ -677,7 +677,15 @@ p {
 }
 
 .city-option-status {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
   padding: 10px 12px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
   color: var(--ink-muted);
   font-size: 0.9rem;
 }
@@ -1351,6 +1359,20 @@ p {
 
   .action-item {
     padding: 4pt 0;
+  }
+
+  .why-panel,
+  .why-panel[hidden],
+  #impact-formula-panel,
+  #impact-formula-panel[hidden],
+  #plan-output .disclosure-panel,
+  #plan-output .disclosure-panel[hidden] {
+    display: block !important;
+    margin-top: 4pt;
+    padding: 4pt 0 4pt 8pt;
+    border: 0;
+    border-left: 1px solid #444444;
+    font-size: 8.5pt;
   }
 
   .site-footer {

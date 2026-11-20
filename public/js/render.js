@@ -40,8 +40,11 @@ function createActionListItem(doc, item, t, idPrefix) {
     panel.id = whyId;
     panel.hidden = true;
     panel.appendChild(el(doc, 'p', '', item.whyItMatters));
-    if (item.impact?.summary && item.impact.summary !== item.whyItMatters) {
-      panel.appendChild(el(doc, 'p', 'why-effect', item.impact.summary));
+    const impactSummary = item.impact?.summaryKey
+      ? t(item.impact.summaryKey)
+      : item.impact?.summary;
+    if (impactSummary && impactSummary !== item.whyItMatters) {
+      panel.appendChild(el(doc, 'p', 'why-effect', impactSummary));
     }
     bindDisclosure(btn, panel, {
       getClosedLabel: () => t('action.showWhy'),
@@ -78,19 +81,21 @@ function buildCommuteTable(doc, impact, t) {
     tbody.appendChild(tr);
   };
 
-  const km = `${impact.kmPerDay} km`;
+  const currentLabel = impact.currentLabelKey ? t(impact.currentLabelKey) : impact.currentLabel;
+  const newLabel = impact.newLabelKey ? t(impact.newLabelKey) : impact.newLabel;
+  const km = t('impact.unit.km', { value: impact.kmPerDay });
   const saved = impact.dailyKgCO2Saved > 0;
   addRow(
-    t('impact.table.currentRow', { mode: impact.currentLabel }),
+    t('impact.table.currentRow', { mode: currentLabel }),
     km,
     t('impact.table.baseline'),
     t('impact.table.baseline')
   );
   addRow(
-    saved ? t('impact.table.cleanerRow', { mode: impact.newLabel }) : t('impact.table.alreadyLow'),
+    saved ? t('impact.table.cleanerRow', { mode: newLabel }) : t('impact.table.alreadyLow'),
     km,
-    `${impact.dailyKgCO2Saved} kg`,
-    `${impact.monthlyKgCO2Saved} kg`,
+    t('impact.unit.kg', { value: impact.dailyKgCO2Saved }),
+    t('impact.unit.kg', { value: impact.monthlyKgCO2Saved }),
     saved
   );
   table.appendChild(tbody);
@@ -113,10 +118,18 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
   const panel = el(doc, 'div', 'disclosure-panel');
   panel.id = 'impact-formula-panel';
   panel.hidden = true;
-  panel.appendChild(el(doc, 'p', 'formula-code', commuteImpact.formula));
+  const formulaText = commuteImpact.formulaKey
+    ? t(commuteImpact.formulaKey, commuteImpact.formulaParams || {})
+    : commuteImpact.formula;
+  panel.appendChild(el(doc, 'p', 'formula-code', formulaText));
 
   const ul = el(doc, 'ul', 'formula-list');
-  for (const a of commuteImpact.assumptions || []) ul.appendChild(el(doc, 'li', '', a));
+  const assumptions = Array.isArray(commuteImpact.assumptionKeys)
+    ? commuteImpact.assumptionKeys.map((entry) =>
+        typeof entry === 'string' ? t(entry) : t(entry.key, entry.params || {})
+      )
+    : commuteImpact.assumptions || [];
+  for (const a of assumptions) ul.appendChild(el(doc, 'li', '', a));
   panel.appendChild(ul);
 
   bindDisclosure(toggleBtn, panel, {

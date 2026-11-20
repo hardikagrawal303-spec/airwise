@@ -9,19 +9,26 @@ import { createManualAirReading } from '../services/airQualityService.js';
  *
  * @param {object} deps - Route dependencies.
  * @param {object} deps.airQualityService - Air quality and geocoding service.
+ * @param {import('express').RequestHandler} [deps.geocodeRateLimiter] - Stricter rate limiter for /geocode.
  * @returns {import('express').Router} Configured Express router.
  */
-export function createAirRouter({ airQualityService }) {
+export function createAirRouter({ airQualityService, geocodeRateLimiter }) {
   const router = Router();
+  const limitGeocode = geocodeRateLimiter || ((_req, _res, next) => next());
 
-  router.get('/geocode', validate(geocodeQuerySchema, 'query'), async (req, res, next) => {
-    try {
-      const results = await airQualityService.geocode(req.validatedQuery.q);
-      res.json({ results });
-    } catch (err) {
-      next(err);
+  router.get(
+    '/geocode',
+    limitGeocode,
+    validate(geocodeQuerySchema, 'query'),
+    async (req, res, next) => {
+      try {
+        const results = await airQualityService.geocode(req.validatedQuery.q);
+        res.json({ results });
+      } catch (err) {
+        next(err);
+      }
     }
-  });
+  );
 
   router.get('/air', validate(airQuerySchema, 'query'), async (req, res, next) => {
     try {

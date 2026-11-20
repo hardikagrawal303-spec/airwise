@@ -43,7 +43,14 @@ export class ClientApiError extends Error {
   }
 }
 
-async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImpl = fetch } = {}) {
+/**
+ * Fetch JSON with timeout, offline detection, and structured ClientApiError mapping.
+ * @param {string} url
+ * @param {RequestInit} [options={}]
+ * @param {{ timeoutMs?: number, fetchImpl?: typeof fetch }} [config={}]
+ * @returns {Promise<any>}
+ */
+export async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImpl = fetch } = {}) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     throw new ClientApiError(mapErrorToLocaleKey({ isOffline: true }), {
       code: 'NETWORK_OFFLINE',

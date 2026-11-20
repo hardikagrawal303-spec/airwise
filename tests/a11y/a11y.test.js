@@ -109,28 +109,44 @@ describe('Accessibility (WCAG 2.1 AA with axe-core + jsdom)', () => {
     dom.window.close();
   });
 
-  test('language toggle switches html[lang] cleanly between en and hi and translates UI', () => {
+  test('language toggle switches html[lang], document.title, and localized aria-labels cleanly between en and hi', () => {
     const dom = createAppDom();
     const doc = dom.window.document;
     expect(doc.documentElement.lang).toBe('en');
+    expect(doc.title).toBe(enLocale['app.title']);
+    expect(doc.getElementById('city-listbox').getAttribute('aria-label')).toBe(
+      enLocale['search.suggestionsLabel']
+    );
+    expect(doc.getElementById('results-region').getAttribute('aria-label')).toBe(
+      enLocale['result.regionLabel']
+    );
 
     applyTranslations(doc, 'hi');
     expect(doc.documentElement.lang).toBe('hi');
+    expect(doc.title).toBe(hiLocale['app.title']);
     expect(doc.getElementById('hero-heading').textContent).toBe(hiLocale['hero.heading']);
+    expect(doc.getElementById('city-listbox').getAttribute('aria-label')).toBe(
+      hiLocale['search.suggestionsLabel']
+    );
+    expect(doc.getElementById('results-region').getAttribute('aria-label')).toBe(
+      hiLocale['result.regionLabel']
+    );
 
     applyTranslations(doc, 'en');
     expect(doc.documentElement.lang).toBe('en');
+    expect(doc.title).toBe(enLocale['app.title']);
     expect(doc.getElementById('hero-heading').textContent).toBe(enLocale['hero.heading']);
     dom.window.close();
   });
 
-  test('polite live region exists and announces status changes, and error summary links fields', async () => {
+  test('announce cancels pending timers and form errors use unique IDs while preserving existing aria-describedby tokens', async () => {
     const dom = createAppDom();
     const doc = dom.window.document;
     const live = doc.getElementById('live-status');
     expect(live).not.toBeNull();
     expect(live.getAttribute('aria-live')).toBe('polite');
 
+    announce(live, 'First stale status');
     announce(live, 'Plan ready');
     await new Promise((r) => setTimeout(r, 60));
     expect(live.textContent).toBe('Plan ready');
@@ -138,17 +154,33 @@ describe('Accessibility (WCAG 2.1 AA with axe-core + jsdom)', () => {
     const form = doc.getElementById('household-form');
     const summaryEl = doc.getElementById('error-summary');
     const listEl = doc.getElementById('error-summary-list');
-    showFormErrors([{ fieldId: 'city-input', message: 'Pick a city' }], {
-      summaryEl,
-      listEl,
-      doc,
-    });
+    const conditionInput = doc.getElementById('condition-input');
+    expect(conditionInput.getAttribute('aria-describedby')).toBe('condition-privacy');
+
+    showFormErrors(
+      [
+        { fieldId: 'city-input', message: 'Pick a city' },
+        { fieldId: 'condition-input', message: 'Check condition' },
+      ],
+      { summaryEl, listEl, doc }
+    );
     expect(summaryEl.hidden).toBe(false);
+    expect(doc.getElementById('error-city-input')).not.toBeNull();
+    expect(doc.getElementById('error-condition-input')).not.toBeNull();
     expect(doc.getElementById('city-input').getAttribute('aria-invalid')).toBe('true');
+    expect(doc.getElementById('city-input').getAttribute('aria-describedby')).toBe(
+      'error-city-input'
+    );
+    expect(conditionInput.getAttribute('aria-describedby')).toBe(
+      'condition-privacy error-condition-input'
+    );
 
     clearFormErrors(form, summaryEl, listEl);
     expect(summaryEl.hidden).toBe(true);
     expect(doc.getElementById('city-input').getAttribute('aria-invalid')).toBeNull();
+    expect(doc.getElementById('city-input').getAttribute('aria-describedby')).toBeNull();
+    expect(conditionInput.getAttribute('aria-invalid')).toBeNull();
+    expect(conditionInput.getAttribute('aria-describedby')).toBe('condition-privacy');
     dom.window.close();
   });
 

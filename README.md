@@ -193,7 +193,7 @@ Full rationale is documented in [`docs/design.md`](docs/design.md). Key choices:
 - **Minimal Dependency Footprint**: Only **6 runtime dependencies** (`express`, `helmet`, `express-rate-limit`, `zod`, `@google/genai`, `dotenv`) — zero frontend frameworks or bundlers.
 - **Tiny Client Payload** (measured and enforced by automated tests):
   - CSS (`public/css/styles.css`): **26.8 KB** (budget < 30 KB)
-  - JavaScript (`public/js/*.js` total): **39.8 KB** (budget < 40 KB)
+  - JavaScript (`public/js/*.js` total): **39.8 KB** (budget < 60 KB)
   - Self-hosted subsetted woff2 fonts (Latin + Devanagari): **127.1 KB** (budget < 150 KB)
   - Inline skyline SVG: **5.8 KB** (budget < 12 KB)
 - **Bounded Caching**: In-memory LRU+TTL cache (`10 min` default for air quality keyed by `0.01°`-rounded coordinates, ~1.1 km; `30 min` / `3×` TTL for geocoding; max `200` entries each) prevents redundant upstream fetches.

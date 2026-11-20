@@ -206,4 +206,40 @@ describe('AirWise API security middleware', () => {
     expect(r3.body.error.requestId.length).toBeGreaterThan(10);
     expect(r3.body.error.message).toBeTruthy();
   });
+
+  test('enforces a dedicated tighter rate limit on /api/geocode routed through errorHandler with requestId', async () => {
+    const { app } = createTestApp({
+      configOverrides: {
+        RATE_LIMIT_MAX: '10',
+        GEOCODE_RATE_LIMIT_MAX: '2',
+        RATE_LIMIT_WINDOW_MS: '60000',
+      },
+    });
+
+    const g1 = await request(app).get('/api/geocode').query({ q: 'Mathura' });
+    const g2 = await request(app).get('/api/geocode').query({ q: 'Delhi' });
+    const g3 = await request(app).get('/api/geocode').query({ q: 'Agra' });
+    // Global limiter still permits other endpoints
+    const health = await request(app).get('/api/health');
+
+    expect(g1.status).toBe(200);
+    expect(g2.status).toBe(200);
+    expect(g3.status).toBe(429);
+    expect(g3.body.error.code).toBe(ERROR_CODES.RATE_LIMITED);
+    expect(typeof g3.body.error.requestId).toBe('string');
+    expect(g3.body.error.requestId.length).toBeGreaterThan(10);
+    expect(health.status).toBe(200);
+  });
+
+  test('config exposes explicit server timeout defaults and keeps CSP free of frame-ancestors', async () => {
+    const cfg = loadConfig({ NODE_ENV: 'test' });
+    expect(cfg.serverHeadersTimeoutMs).toBe(10000);
+    expect(cfg.serverRequestTimeoutMs).toBe(20000);
+    expect(cfg.serverKeepAliveTimeoutMs).toBe(65000);
+    expect(cfg.geocodeRateLimitMax).toBeLessThan(cfg.rateLimitMax);
+
+    const { app } = createTestApp();
+    const res = await request(app).get('/api/health');
+    expect(res.headers['content-security-policy']).not.toContain('frame-ancestors');
+  });
 });

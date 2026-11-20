@@ -7,81 +7,63 @@ import { ACTIONS_BY_ID } from '../knowledge/actions.js';
 
 const ACTION_EXPOSURE_GUIDANCE = Object.freeze({
   wear_n95_outdoors: {
-    exposureEffect: 'can help reduce personal particle exposure outdoors',
-    summary:
-      'If an N95/FFP2-type mask is worn with a tight face seal, it is rated to filter at least 95% of test particles (laboratory rating; real-world fit varies). This can help reduce the fine particles you breathe outdoors.',
-    formula:
-      'Laboratory filtration rating >= 95% at 0.3 um test aerosol; real-world intake depends on seal fit and wear time (estimate).',
-    assumptions: [
-      'Applies to properly fitted N95/FFP2 respirators, not loose cloth or surgical masks.',
-      'Facial hair, gaps at the nose bridge, and removing the mask reduce real-world filtration.',
+    exposureEffectKey: 'impact.exposure.wear_n95_outdoors.effect',
+    summaryKey: 'impact.exposure.wear_n95_outdoors.summary',
+    formulaKey: 'impact.exposure.wear_n95_outdoors.formula',
+    assumptionKeys: [
+      'impact.exposure.wear_n95_outdoors.assumption1',
+      'impact.exposure.wear_n95_outdoors.assumption2',
     ],
     confidence: 'medium',
     isEstimate: true,
   },
   run_hepa_purifier: {
-    exposureEffect: 'mainly reduces indoor airborne particles',
-    summary:
-      'A True HEPA filter is rated to capture 99.97% of 0.3 micron test particles passing through it (laboratory rating). In a closed, right-sized room, running it continuously can help reduce indoor PM2.5.',
-    formula:
-      'HEPA filter rating = 99.97% single-pass capture at 0.3 um; room-level drop depends on CADR vs room volume and air leakage (estimate).',
-    assumptions: [
-      'Requires windows and doors to stay mostly shut during peak smog.',
-      'Filter performance drops if the unit is undersized for the room or the filter is overdue for replacement.',
+    exposureEffectKey: 'impact.exposure.run_hepa_purifier.effect',
+    summaryKey: 'impact.exposure.run_hepa_purifier.summary',
+    formulaKey: 'impact.exposure.run_hepa_purifier.formula',
+    assumptionKeys: [
+      'impact.exposure.run_hepa_purifier.assumption1',
+      'impact.exposure.run_hepa_purifier.assumption2',
     ],
     confidence: 'medium',
     isEstimate: true,
   },
   diy_box_fan_filter: {
-    exposureEffect: 'can help reduce indoor particles as a temporary stopgap',
-    summary:
-      'A taped box fan with a MERV-13 or HEPA replacement filter can help reduce indoor dust and smoke particles when used supervised as a low-cost stopgap.',
-    formula:
-      'Qualitative estimate: depends on fan airflow, filter grade, and sealing gaps around the filter frame.',
-    assumptions: [
-      'Stopgap measure only; never leave an improvised fan-filter running unattended or near water.',
-      'Effectiveness is lower than a certified room HEPA purifier and depends on keeping gaps sealed.',
+    exposureEffectKey: 'impact.exposure.diy_box_fan_filter.effect',
+    summaryKey: 'impact.exposure.diy_box_fan_filter.summary',
+    formulaKey: 'impact.exposure.diy_box_fan_filter.formula',
+    assumptionKeys: [
+      'impact.exposure.diy_box_fan_filter.assumption1',
+      'impact.exposure.diy_box_fan_filter.assumption2',
     ],
     confidence: 'low',
     isEstimate: true,
   },
   indoor_plants_realistic_note: {
-    exposureEffect: 'mainly reduces indoor particle buildup',
-    summary:
-      'Indoor plants brighten a room, but studies show household plants do not meaningfully lower indoor PM2.5; rely on sealing, ventilation timing, and filtration instead.',
-    formula:
-      'Qualitative indoor-air estimate (no single universal percentage applies across homes).',
-    assumptions: [
-      'Impact varies with room ventilation rate, outdoor AQI, and how tightly doors and windows close.',
-    ],
+    exposureEffectKey: 'impact.exposure.indoor_plants_realistic_note.effect',
+    summaryKey: 'impact.exposure.indoor_plants_realistic_note.summary',
+    formulaKey: 'impact.exposure.indoor_air.formula',
+    assumptionKeys: ['impact.exposure.indoor_air.assumption1'],
     confidence: 'low',
     isEstimate: true,
   },
 });
 
 const COMMUNITY_EMISSIONS_GUIDANCE = Object.freeze({
-  exposureEffect: 'can help reduce local neighbourhood emissions',
-  summary:
-    'Can help reduce tailpipe, generator, or open-burning smoke in your immediate street and neighbourhood over time.',
-  formula:
-    'Qualitative community-emissions estimate; impact scales with how many households participate.',
-  assumptions: [
-    'Individual actions matter most when paired with neighbourhood and municipal compliance.',
-  ],
+  exposureEffectKey: 'impact.exposure.community.effect',
+  summaryKey: 'impact.exposure.community.summary',
+  formulaKey: 'impact.exposure.community.formula',
+  assumptionKeys: ['impact.exposure.community.assumption1'],
   confidence: 'low',
   isEstimate: true,
 });
 
 const CATEGORY_EXPOSURE_GUIDANCE = Object.freeze({
   indoor_air: {
-    exposureEffect: 'mainly reduces indoor particle buildup',
-    summary:
-      'Can help reduce indoor fine-particle buildup and keep your sleeping and living spaces calmer during peak smog hours.',
-    formula:
-      'Qualitative indoor-air estimate (no single universal percentage applies across homes).',
-    assumptions: [
-      'Impact varies with room ventilation rate, outdoor AQI, and how tightly doors and windows close.',
-    ],
+    exposureEffectKey: 'impact.exposure.indoor_air.effect',
+    summaryKey: 'impact.exposure.indoor_air.summary',
+    formulaKey: 'impact.exposure.indoor_air.formula',
+    assumptionKeys: ['impact.exposure.indoor_air.assumption1'],
     confidence: 'low',
     isEstimate: true,
   },
@@ -90,13 +72,10 @@ const CATEGORY_EXPOSURE_GUIDANCE = Object.freeze({
 });
 
 const DEFAULT_EXPOSURE_GUIDANCE = Object.freeze({
-  exposureEffect: 'can help reduce personal exposure',
-  summary:
-    'Can help reduce the amount of polluted air your household breathes during peak winter inversion hours.',
-  formula: 'Qualitative exposure-timing estimate based on duration and breathing rate outdoors.',
-  assumptions: [
-    'Lower breathing rate and shorter time outdoors reduce total inhaled particles, though exact amounts vary by location.',
-  ],
+  exposureEffectKey: 'impact.exposure.default.effect',
+  summaryKey: 'impact.exposure.default.summary',
+  formulaKey: 'impact.exposure.default.formula',
+  assumptionKeys: ['impact.exposure.default.assumption1'],
   confidence: 'low',
   isEstimate: true,
 });
@@ -115,13 +94,13 @@ function resolveMode(mode, paramName) {
 
 /**
  * Estimate daily and monthly CO2e savings from switching daily commute mode.
- * Returns transparent formula, assumptions, confidence, and isEstimate: true.
+ * Returns locale keys plus interpolation parameters, confidence, and isEstimate: true.
  *
  * @param {object} input - Commute comparison inputs.
  * @param {string} input.currentMode - Current commute mode identifier.
  * @param {string} input.newMode - Cleaner target commute mode identifier.
  * @param {number} input.kmPerDay - Daily round-trip commute distance in km.
- * @returns {object} Transparent CO2e savings estimate with formula and assumptions.
+ * @returns {object} Transparent localized CO2e savings estimate with formula and assumptions keys.
  */
 export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
   const current = resolveMode(currentMode, 'currentMode');
@@ -139,28 +118,40 @@ export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
   const diffPerKm = Math.max(0, current.factor.kgCO2ePerKm - target.factor.kgCO2ePerKm);
   const dailyKgCO2Saved = round2(diffPerKm * kmPerDay);
   const monthlyKgCO2Saved = round2(dailyKgCO2Saved * COMMUTE_DAYS_PER_MONTH);
-  const formula = `(${current.factor.kgCO2ePerKm} - ${target.factor.kgCO2ePerKm}) kg CO2e/km * ${kmPerDay} km/day = ${dailyKgCO2Saved} kg/day; * ${COMMUTE_DAYS_PER_MONTH} days = ${monthlyKgCO2Saved} kg/month (estimate)`;
-
-  const summary =
-    kmPerDay === 0 || current.canonical === target.canonical || diffPerKm === 0
-      ? 'No commute CO2e reduction calculated for this comparison (estimate).'
-      : `Switching ${kmPerDay} km/day from ${current.factor.label.toLowerCase()} to ${target.factor.label.toLowerCase()} can help reduce about ${dailyKgCO2Saved} kg CO2e per day (~${monthlyKgCO2Saved} kg/month, estimate).`;
+  const noReduction = kmPerDay === 0 || current.canonical === target.canonical || diffPerKm === 0;
 
   return {
     currentMode: current.canonical,
     newMode: target.canonical,
-    currentLabel: current.factor.label,
-    newLabel: target.factor.label,
+    currentLabelKey: current.factor.labelKey,
+    newLabelKey: target.factor.labelKey,
     kmPerDay,
     dailyKgCO2Saved,
     monthlyKgCO2Saved,
-    summary,
-    formula,
-    assumptions: [
-      current.factor.note,
-      target.factor.note,
-      `Monthly figure assumes ${COMMUTE_DAYS_PER_MONTH} commute days per month.`,
-      'Approximate averages only; actual emissions vary with vehicle age, traffic, and occupancy.',
+    summaryKey: noReduction ? 'impact.commute.summaryNone' : 'impact.commute.summarySwitch',
+    summaryParams: noReduction
+      ? {}
+      : {
+          kmPerDay,
+          currentModeKey: current.factor.labelKey,
+          newModeKey: target.factor.labelKey,
+          dailyKgCO2Saved,
+          monthlyKgCO2Saved,
+        },
+    formulaKey: 'impact.commute.formula',
+    formulaParams: {
+      currentFactor: current.factor.kgCO2ePerKm,
+      newFactor: target.factor.kgCO2ePerKm,
+      kmPerDay,
+      dailyKgCO2Saved,
+      commuteDays: COMMUTE_DAYS_PER_MONTH,
+      monthlyKgCO2Saved,
+    },
+    assumptionKeys: [
+      { key: current.factor.noteKey, params: { factor: current.factor.kgCO2ePerKm } },
+      { key: target.factor.noteKey, params: { factor: target.factor.kgCO2ePerKm } },
+      { key: 'impact.commute.assumptionDays', params: { days: COMMUTE_DAYS_PER_MONTH } },
+      { key: 'impact.commute.assumptionApproximate', params: {} },
     ],
     confidence: 'medium',
     isEstimate: true,
@@ -188,11 +179,11 @@ export function buildCommuteComparison(profile) {
 }
 
 /**
- * Honest qualitative exposure-reduction guidance for actions.
- * Never invents disease-prevention numbers; uses "can help reduce" language only.
+ * Honest qualitative exposure-reduction guidance keys for actions.
+ * Never invents disease-prevention numbers; uses localized "can help reduce" copy only.
  *
  * @param {string} actionId - Curated action identifier.
- * @returns {{ exposureEffect: string, summary: string, formula: string, assumptions: string[], confidence: string, isEstimate: boolean }} Qualitative impact metadata.
+ * @returns {{ exposureEffectKey: string, summaryKey: string, formulaKey: string, assumptionKeys: string[], confidence: string, isEstimate: boolean }} Qualitative impact locale keys.
  */
 export function estimateExposureReduction(actionId) {
   const actionCategory = ACTIONS_BY_ID[actionId]?.category;
@@ -200,5 +191,5 @@ export function estimateExposureReduction(actionId) {
     ACTION_EXPOSURE_GUIDANCE[actionId] ||
     CATEGORY_EXPOSURE_GUIDANCE[actionCategory] ||
     DEFAULT_EXPOSURE_GUIDANCE;
-  return { ...entry, assumptions: [...entry.assumptions] };
+  return { ...entry, assumptionKeys: [...entry.assumptionKeys] };
 }

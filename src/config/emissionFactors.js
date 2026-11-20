@@ -11,43 +11,43 @@ export const COMMUTE_DAYS_PER_MONTH = 22;
 export const EMISSION_FACTORS = Object.freeze({
   car_petrol: Object.freeze({
     kgCO2ePerKm: 0.17,
-    label: 'Petrol car',
-    note: 'Approximate average for a single-occupant petrol passenger car in urban traffic (~0.17 kg CO2e/pkm).',
+    labelKey: 'impact.mode.car_petrol',
+    noteKey: 'impact.modeNote.car_petrol',
   }),
   two_wheeler: Object.freeze({
     kgCO2ePerKm: 0.05,
-    label: 'Two-wheeler',
-    note: 'Approximate average for a petrol scooter or motorcycle (~0.05 kg CO2e/pkm).',
+    labelKey: 'impact.mode.two_wheeler',
+    noteKey: 'impact.modeNote.two_wheeler',
   }),
   auto_cng: Object.freeze({
     kgCO2ePerKm: 0.08,
-    label: 'CNG auto-rickshaw',
-    note: 'Approximate average for a CNG auto-rickshaw carrying 1-2 passengers (~0.08 kg CO2e/pkm).',
+    labelKey: 'impact.mode.auto_cng',
+    noteKey: 'impact.modeNote.auto_cng',
   }),
   bus: Object.freeze({
     kgCO2ePerKm: 0.04,
-    label: 'City bus',
-    note: 'Approximate average per passenger on an urban CNG/diesel bus at typical occupancy (~0.04 kg CO2e/pkm).',
+    labelKey: 'impact.mode.bus',
+    noteKey: 'impact.modeNote.bus',
   }),
   metro: Object.freeze({
     kgCO2ePerKm: 0.03,
-    label: 'Metro rail',
-    note: 'Approximate average per passenger on urban electric metro rail using Indian grid electricity (~0.03 kg CO2e/pkm).',
+    labelKey: 'impact.mode.metro',
+    noteKey: 'impact.modeNote.metro',
   }),
   cycle: Object.freeze({
     kgCO2ePerKm: 0,
-    label: 'Bicycle',
-    note: 'Zero tailpipe emissions during travel (0 kg CO2e/pkm).',
+    labelKey: 'impact.mode.cycle',
+    noteKey: 'impact.modeNote.cycle',
   }),
   walk: Object.freeze({
     kgCO2ePerKm: 0,
-    label: 'Walking',
-    note: 'Zero tailpipe emissions during travel (0 kg CO2e/pkm).',
+    labelKey: 'impact.mode.walk',
+    noteKey: 'impact.modeNote.walk',
   }),
   work_from_home: Object.freeze({
     kgCO2ePerKm: 0,
-    label: 'Work from home',
-    note: 'Zero daily commute tailpipe emissions (0 kg CO2e/pkm).',
+    labelKey: 'impact.mode.work_from_home',
+    noteKey: 'impact.modeNote.work_from_home',
   }),
 });
 

@@ -12,12 +12,18 @@ import {
 export { buildCompactPromptPayload };
 
 function isNonRetryableError(err) {
-  const status = err?.status || err?.statusCode || err?.code;
-  if (status === 400 || status === 401 || status === 403 || status === 404) {
-    return true;
+  const status = Number(err?.status ?? err?.statusCode ?? err?.code);
+  if (Number.isInteger(status) && status >= 400 && status < 500) {
+    return status !== 429;
   }
   const msg = String(err?.message || '');
-  return /\b(400|401|403|404|PERMISSION_DENIED|API_KEY_INVALID|NOT_FOUND)\b/i.test(msg);
+  if (
+    /\b(PERMISSION_DENIED|API_KEY_INVALID|INVALID_ARGUMENT|NOT_FOUND|UNAUTHENTICATED)\b/i.test(msg)
+  ) {
+    return true;
+  }
+  const match = /\b(4\d{2})\b/.exec(msg);
+  return Boolean(match && match[1] !== '429');
 }
 
 async function callWithTimeout(promiseFn, timeoutMs) {

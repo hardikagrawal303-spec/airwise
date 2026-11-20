@@ -18,6 +18,7 @@ const envSchema = z.object({
     .min(1000)
     .default(15 * 60 * 1000),
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(100),
+  GEOCODE_RATE_LIMIT_MAX: z.coerce.number().int().min(1).optional(),
   AQI_CACHE_TTL_SECONDS: z.coerce.number().int().min(10).max(86400).default(600),
   TRUST_PROXY: z.string().optional(),
   ALLOWED_ORIGINS: z.string().optional().default(''),
@@ -127,7 +128,13 @@ export function loadConfig(envSource = process.env) {
     nodeEnv: data.NODE_ENV,
     rateLimitWindowMs: data.RATE_LIMIT_WINDOW_MS,
     rateLimitMax: data.RATE_LIMIT_MAX,
+    geocodeRateLimitMax:
+      data.GEOCODE_RATE_LIMIT_MAX ?? Math.max(1, Math.floor(data.RATE_LIMIT_MAX / 2)),
     planRateLimitMax: Math.max(10, Math.floor(data.RATE_LIMIT_MAX / 3)),
+    serverHeadersTimeoutMs: 10000,
+    serverRequestTimeoutMs: 20000,
+    serverKeepAliveTimeoutMs: 65000,
+    serverShutdownTimeoutMs: 10000,
     aqiCacheTtlMs: data.AQI_CACHE_TTL_SECONDS * 1000,
     geocodeCacheTtlMultiplier: 3,
     geocodeCacheTtlMs: data.AQI_CACHE_TTL_SECONDS * 1000 * 3,

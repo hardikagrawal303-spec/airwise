@@ -57,6 +57,10 @@ export function createApp({
     windowMs: config.rateLimitWindowMs,
     max: config.rateLimitMax,
   });
+  const geocodeLimiter = createApiRateLimiter({
+    windowMs: config.rateLimitWindowMs,
+    max: config.geocodeRateLimitMax,
+  });
   const planLimiter = createApiRateLimiter({
     windowMs: config.rateLimitWindowMs,
     max: config.planRateLimitMax,
@@ -74,7 +78,7 @@ export function createApp({
   const planBuilder = createPlanBuilder({ airQualityService, geminiService });
 
   app.use('/api', createHealthRouter({ aiEnabled: geminiService.isEnabled() }));
-  app.use('/api', createAirRouter({ airQualityService }));
+  app.use('/api', createAirRouter({ airQualityService, geocodeRateLimiter: geocodeLimiter }));
   app.use('/api', createPlanRouter({ planBuilder, planRateLimiter: planLimiter }));
 
   app.use('/api', notFoundHandler);

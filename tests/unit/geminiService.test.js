@@ -215,4 +215,32 @@ describe('geminiService (constrained personalization + fallback)', () => {
     expect(mockGenerate.mock.calls[0][0].config.temperature).toBe(0.3);
     expect(result.copySource).toBe('rules');
   });
+
+  test('retries on 429/5xx and never retries on non-429 4xx (e.g. 422)', async () => {
+    const rateLimitMock = jest.fn(async () => {
+      const err = new Error('RESOURCE_EXHAUSTED');
+      err.status = 429;
+      throw err;
+    });
+    const svc429 = createGeminiService({
+      apiKey: 'fake-test-token-for-mock',
+      clientFactory: () => ({ models: { generateContent: rateLimitMock } }),
+    });
+    const res429 = await svc429.personalizePlan(baseInput);
+    expect(res429.copySource).toBe('rules');
+    expect(rateLimitMock).toHaveBeenCalledTimes(2);
+
+    const badReqMock = jest.fn(async () => {
+      const err = new Error('Unprocessable');
+      err.status = 422;
+      throw err;
+    });
+    const svc422 = createGeminiService({
+      apiKey: 'fake-test-token-for-mock',
+      clientFactory: () => ({ models: { generateContent: badReqMock } }),
+    });
+    const res422 = await svc422.personalizePlan(baseInput);
+    expect(res422.copySource).toBe('rules');
+    expect(badReqMock).toHaveBeenCalledTimes(1);
+  });
 });

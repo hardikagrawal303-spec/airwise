@@ -212,7 +212,21 @@
                       data-i18n-placeholder="form.placeholder.city"
                       placeholder="Type a city, e.g. Mathura"
                     />
-                    <ul id="city-listbox" class="city-listbox" role="listbox" hidden></ul>
+                    <ul
+                      id="city-listbox"
+                      class="city-listbox"
+                      role="listbox"
+                      aria-label="City suggestions"
+                      data-i18n-aria-label="search.suggestionsLabel"
+                      hidden
+                    ></ul>
+                    <div
+                      id="city-status"
+                      class="city-option-status"
+                      role="status"
+                      aria-live="polite"
+                      hidden
+                    ></div>
                   </span>
                 </span>
 
@@ -537,6 +551,7 @@
         id="results-region"
         class="reading-column results-region"
         aria-label="Air quality plan"
+        data-i18n-aria-label="result.regionLabel"
       >
         <div id="api-error-banner" class="api-error-banner" role="alert" hidden>
           <p id="api-error-text" class="api-error-text"></p>

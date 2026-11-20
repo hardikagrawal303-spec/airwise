@@ -59,6 +59,10 @@ export function createManualAirReading({ pm25, pm10 = null }) {
   };
 }
 
+function isRetryableStatus(status) {
+  return status === 429 || status >= 500;
+}
+
 async function fetchJsonWithTimeoutAndRetry(
   url,
   { fetchImpl, timeoutMs, retryDelayMs, maxAttempts = config.upstreamMaxAttempts }
@@ -73,17 +77,22 @@ async function fetchJsonWithTimeoutAndRetry(
         headers: { Accept: 'application/json' },
         signal: controller.signal,
       });
-      if (response.status >= 500 && attempt < maxAttempts) {
-        lastError = new Error(`Upstream 5xx: ${response.status}`);
+      if (isRetryableStatus(response.status) && attempt < maxAttempts) {
+        lastError = new Error(`Upstream HTTP ${response.status}`);
         await delay(retryDelayMs);
         continue;
       }
       if (!response.ok) {
-        throw new Error(`Upstream HTTP ${response.status}`);
+        const httpErr = new Error(`Upstream HTTP ${response.status}`);
+        httpErr.nonRetryable = !isRetryableStatus(response.status);
+        throw httpErr;
       }
       return await response.json();
     } catch (err) {
       lastError = err;
+      if (err?.nonRetryable) {
+        throw err;
+      }
       if (attempt < maxAttempts) {
         await delay(retryDelayMs);
         continue;

@@ -1,5 +1,6 @@
 {
   "app.name": "AirWise",
+  "app.title": "AirWise — शहरी वायु गुणवत्ता सहायक",
   "app.skipToMain": "मुख्य सामग्री पर जाएँ",
   "app.langSwitchLabel": "भाषा अंग्रेज़ी में बदलें",
   "app.langSwitchText": "English",
@@ -91,6 +92,7 @@
 
   "search.noResults": "कोई मिलता-जुलता शहर नहीं मिला। दूसरी वर्तनी लिखें या PM2.5 खुद दर्ज करें।",
   "search.searching": "शहर खोजे जा रहे हैं...",
+  "search.suggestionsLabel": "शहरों के सुझाव",
 
   "empty.heading": "आपके परिवार की योजना यहाँ दिखेगी",
   "empty.body": "ऊपर अपना शहर चुनें या PM2.5 संख्या लिखें, फिर हमारी योजना बनाएँ दबाएँ। आपको दिन-भर की समय-सारणी, घर के उपाय और सफ़र की बचत दिखेगी।",
@@ -126,6 +128,7 @@
   "result.opening.elevated": "{place} में अभी PM2.5 का स्तर {pm25} µg/m³ है, जो {band} श्रेणी (AQI {aqi}) में आता है। घर में संवेदनशील सदस्य होने के कारण आज साफ समय चुनने और घर की हवा बचाने पर ध्यान दें।",
   "result.opening.high": "{place} में अभी PM2.5 का स्तर {pm25} µg/m³ है, जो {band} श्रेणी (AQI {aqi}) में आता है। आपके परिवार के लिए आज बाहर का समय कम रखना, कमरे बंद रखना और लक्षणों पर नज़र रखना ज़रूरी है।",
   "result.defaultPlace": "आपका इलाका",
+  "result.regionLabel": "वायु गुणवत्ता योजना",
 
   "section.day.heading": "आपका दिन",
   "section.day.patternNote": "उत्तर भारत की सर्दियों के स्मॉग का सामान्य पैटर्न (स्थानीय मौसम पूर्वानुमान नहीं)।",
@@ -177,6 +180,68 @@
   "impact.disclosure.open": "हमने यह हिसाब कैसे लगाया",
   "impact.disclosure.close": "हिसाब का तरीका छिपाएँ",
   "impact.estimateNote": "ऊपर दिए सभी आँकड़े भारतीय शहरी यातायात के औसत पर आधारित अनुमान हैं।",
+  "impact.unit.km": "{value} किमी",
+  "impact.unit.kg": "{value} किग्रा",
+
+  "impact.mode.car_petrol": "पेट्रोल कार",
+  "impact.mode.two_wheeler": "दोपहिया वाहन",
+  "impact.mode.auto_cng": "CNG ऑटो-रिक्शा",
+  "impact.mode.bus": "सिटी बस",
+  "impact.mode.metro": "मेट्रो रेल",
+  "impact.mode.cycle": "साइकिल",
+  "impact.mode.walk": "पैदल चलना",
+  "impact.mode.work_from_home": "घर से काम",
+
+  "impact.modeNote.car_petrol": "शहरी ट्रैफ़िक में एक यात्री वाली पेट्रोल कार का अनुमानित औसत (~{factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.two_wheeler": "पेट्रोल स्कूटर या मोटरसाइकिल का अनुमानित औसत (~{factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.auto_cng": "1-2 यात्रियों वाले CNG ऑटो-रिक्शा का अनुमानित औसत (~{factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.bus": "सामान्य सवारी वाली शहरी CNG/डीज़ल बस में प्रति यात्री अनुमानित औसत (~{factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.metro": "भारतीय ग्रिड बिजली से चलने वाली शहरी मेट्रो में प्रति यात्री अनुमानित औसत (~{factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.cycle": "सफ़र के दौरान साइलेंसर से कोई धुआँ नहीं ({factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.walk": "सफ़र के दौरान साइलेंसर से कोई धुआँ नहीं ({factor} किग्रा CO2e प्रति यात्री-किमी)।",
+  "impact.modeNote.work_from_home": "रोज़ाना सफ़र न होने से वाहन उत्सर्जन शून्य ({factor} किग्रा CO2e प्रति यात्री-किमी)।",
+
+  "impact.commute.summaryNone": "इस तुलना के लिए सफ़र से CO2e में कोई अतिरिक्त कमी नहीं गिनी गई है (अनुमान)।",
+  "impact.commute.summarySwitch": "रोज़ {kmPerDay} किमी का सफ़र {currentMode} से बदलकर {newMode} करने से रोज़ लगभग {dailyKgCO2Saved} किग्रा (महीने में ~{monthlyKgCO2Saved} किग्रा, अनुमान) CO2e घटाने में मदद मिल सकती है।",
+  "impact.commute.formula": "({currentFactor} - {newFactor}) किग्रा CO2e/किमी × {kmPerDay} किमी/दिन = {dailyKgCO2Saved} किग्रा/दिन; × {commuteDays} दिन = {monthlyKgCO2Saved} किग्रा/माह (अनुमान)",
+  "impact.commute.assumptionDays": "मासिक हिसाब महीने में {days} कार्य-दिवसों के सफ़र के आधार पर लगाया गया है।",
+  "impact.commute.assumptionApproximate": "यह केवल अनुमानित औसत है; वास्तविक उत्सर्जन वाहन की उम्र, ट्रैफ़िक और यात्रियों की संख्या के अनुसार बदलता है।",
+
+  "impact.exposure.wear_n95_outdoors.effect": "बाहर बारीक कणों से बचाव में मदद मिल सकती है",
+  "impact.exposure.wear_n95_outdoors.summary": "अगर N95/FFP2 मास्क चेहरे पर कसकर फिट किया जाए, तो लैब परीक्षण में यह कम से कम 95% कण छानने के लिए रेटेड है (असली असर फिटिंग पर निर्भर करता है)। इससे बाहर साँस में जाने वाले बारीक कण कम करने में मदद मिल सकती है।",
+  "impact.exposure.wear_n95_outdoors.formula": "0.3 माइक्रोन कणों पर लैब छानने की क्षमता ≥ 95%; वास्तविक लाभ मास्क की फिटिंग और पहनने के समय पर निर्भर करता है (अनुमान)।",
+  "impact.exposure.wear_n95_outdoors.assumption1": "यह ठीक से फिट N95/FFP2 मास्क पर लागू होता है, ढीले कपड़े या सर्जिकल मास्क पर नहीं।",
+  "impact.exposure.wear_n95_outdoors.assumption2": "दाढ़ी, नाक के पास खुली जगह या बीच में मास्क उतारने से छानने का असर कम हो जाता है।",
+
+  "impact.exposure.run_hepa_purifier.effect": "मुख्य रूप से घर के अंदर हवा के कण घटाने में सहायक",
+  "impact.exposure.run_hepa_purifier.summary": "True HEPA फ़िल्टर अपने से गुज़रने वाले 0.3 माइक्रोन के 99.97% परीक्षण कण पकड़ने के लिए रेटेड है (लैब रेटिंग)। बंद और सही आकार के कमरे में इसे लगातार चलाने से घर के अंदर का PM2.5 कम करने में मदद मिल सकती है।",
+  "impact.exposure.run_hepa_purifier.formula": "HEPA फ़िल्टर की एक बार में पकड़ क्षमता 99.97%; कमरे में कुल कमी प्यूरीफ़ायर की क्षमता (CADR), कमरे के आकार और दरारों से आने वाली हवा पर निर्भर करती है (अनुमान)।",
+  "impact.exposure.run_hepa_purifier.assumption1": "घने स्मॉग के दौरान खिड़कियाँ और दरवाज़े ज़्यादातर बंद रहना ज़रूरी है।",
+  "impact.exposure.run_hepa_purifier.assumption2": "कमरे के हिसाब से छोटा प्यूरीफ़ायर होने या पुराना फ़िल्टर न बदलने पर असर घट जाता है।",
+
+  "impact.exposure.diy_box_fan_filter.effect": "अस्थायी उपाय के रूप में घर के कण घटाने में मदद कर सकता है",
+  "impact.exposure.diy_box_fan_filter.summary": "बॉक्स फ़ैन के पीछे MERV-13 या HEPA फ़िल्टर कसकर टेप लगाने से कम खर्च में निगरानी के साथ कमरे की धूल और धुआँ कम करने में मदद मिल सकती है।",
+  "impact.exposure.diy_box_fan_filter.formula": "गुणात्मक अनुमान: असर पंखे की हवा, फ़िल्टर के ग्रेड और किनारे की सीलिंग पर निर्भर करता है।",
+  "impact.exposure.diy_box_fan_filter.assumption1": "यह केवल अस्थायी उपाय है; इसे कभी अकेला चलता न छोड़ें और पानी से दूर रखें।",
+  "impact.exposure.diy_box_fan_filter.assumption2": "इसका असर प्रमाणित HEPA प्यूरीफ़ायर से कम होता है और किनारे अच्छी तरह बंद होने पर निर्भर करता है।",
+
+  "impact.exposure.indoor_plants_realistic_note.effect": "मुख्य रूप से घर के अंदर कण जमा होने से जुड़ी स्पष्टता",
+  "impact.exposure.indoor_plants_realistic_note.summary": "घरेलू पौधे कमरे को सुंदर बनाते हैं, पर अध्ययन दिखाते हैं कि वे कमरे का PM2.5 उल्लेखनीय रूप से कम नहीं करते; इसके लिए दरारें बंद करने, सही समय पर हवा बदलने और फ़िल्टर पर भरोसा करें।",
+
+  "impact.exposure.community.effect": "मोहल्ले में स्थानीय धुआँ घटाने में मदद मिल सकती है",
+  "impact.exposure.community.summary": "समय के साथ आपकी गली और मोहल्ले में वाहनों, जनरेटर या खुले में कचरा जलाने का धुआँ कम करने में मदद मिल सकती है।",
+  "impact.exposure.community.formula": "सामुदायिक उत्सर्जन का गुणात्मक अनुमान; जितने अधिक परिवार जुड़ते हैं, असर उतना बढ़ता है।",
+  "impact.exposure.community.assumption1": "जब मोहल्ले और नगर निकाय के नियमों का साथ मिलता है, तब व्यक्तिगत कदमों का सबसे ज़्यादा असर दिखता है।",
+
+  "impact.exposure.indoor_air.effect": "घर के अंदर बारीक कण जमा होना घटाने में सहायक",
+  "impact.exposure.indoor_air.summary": "घने स्मॉग के समय घर के अंदर बारीक कण जमा होने से रोकने और सोने-बैठने के कमरों की हवा हल्की रखने में मदद मिल सकती है।",
+  "impact.exposure.indoor_air.formula": "घर की हवा का गुणात्मक अनुमान (हर घर के लिए एक ही प्रतिशत लागू नहीं होता)।",
+  "impact.exposure.indoor_air.assumption1": "असर कमरे की हवा के आवागमन, बाहर के AQI और दरवाज़े-खिड़कियों की बंद स्थिति के अनुसार बदलता है।",
+
+  "impact.exposure.default.effect": "व्यक्तिगत प्रदूषण प्रभाव घटाने में मदद मिल सकती है",
+  "impact.exposure.default.summary": "सर्दियों में घने स्मॉग के घंटों के दौरान आपके परिवार की साँस में जाने वाली प्रदूषित हवा की मात्रा कम करने में मदद मिल सकती है।",
+  "impact.exposure.default.formula": "बाहर बिताए गए समय और साँस लेने की गति पर आधारित गुणात्मक अनुमान।",
+  "impact.exposure.default.assumption1": "बाहर कम समय बिताने और भारी मेहनत न करने से भीतर जाने वाले कण घटते हैं, हालाँकि सटीक मात्रा स्थान के अनुसार बदलती है।",
 
   "community.printButton": "नोटिस बोर्ड के लिए एक पन्ना प्रिंट करें",
   "community.shareButton": "सारांश साझा करें",

@@ -11,7 +11,6 @@ const STORAGE_LANG_KEY = 'airwise_lang';
 const STORAGE_THEME_KEY = 'airwise_theme';
 const UI_TIMINGS = Object.freeze({
   citySearchDebounceMs: 300,
-  listboxBlurCloseMs: 150,
   geoTimeoutMs: 8000,
   geoMaxAgeMs: 300000,
 });
@@ -70,6 +69,10 @@ function setManualMode(open) {
 
 function setLoadingUi(loading) {
   state.isSubmitting = loading;
+  const resultsRegion = byId('results-region');
+  if (resultsRegion) {
+    resultsRegion.setAttribute('aria-busy', String(Boolean(loading)));
+  }
   const submitBtn = byId('submit-btn');
   if (submitBtn) {
     submitBtn.disabled = loading;
@@ -178,7 +181,6 @@ async function bootstrap() {
     t,
     onError: showApiError,
     debounceMs: UI_TIMINGS.citySearchDebounceMs,
-    blurCloseMs: UI_TIMINGS.listboxBlurCloseMs,
   });
   initGeolocation({
     state,

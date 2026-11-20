@@ -66,4 +66,36 @@ describe('Time-of-day guidance engine', () => {
     });
     expect(timeline[0].guidanceKey).toBe('timeslots.early_morning.moderate');
   });
+
+  test('picks single cleanest hour when fewer than 3 valid hourly samples exist', () => {
+    const twoSamples = findBestHours({
+      time: ['2026-11-19T08:00', '2026-11-19T14:00'],
+      pm2_5: [190, 92.46],
+    });
+    expect(twoSamples.windowSource).toBe('hourly_model');
+    expect(twoSamples.isForecast).toBe(true);
+    expect(twoSamples.isPattern).toBe(false);
+    expect(twoSamples.windowLabel).toBe('14:00 - 14:00');
+    expect(twoSamples.averagePm25).toBe(92.5);
+    expect(twoSamples.hours).toEqual([{ time: '2026-11-19T14:00', pm25: 92.5 }]);
+
+    const oneValid = findBestHours({
+      time: ['2026-11-19T08:00', '2026-11-19T09:00'],
+      pm2_5: [null, 64],
+    });
+    expect(oneValid.windowSource).toBe('hourly_model');
+    expect(oneValid.windowLabel).toBe('09:00 - 09:00');
+    expect(oneValid.averagePm25).toBe(64);
+
+    const allNull = findBestHours({
+      time: ['2026-11-19T08:00', '2026-11-19T09:00'],
+      pm2_5: [null, null],
+    });
+    expect(allNull.windowSource).toBe('pattern');
+  });
+
+  test('throws TypeError when buildTimeSlots receives an invalid aqiResult', () => {
+    expect(() => buildTimeSlots({ aqiResult: null })).toThrow(TypeError);
+    expect(() => buildTimeSlots({ aqiResult: { category: 'Unknown' } })).toThrow(TypeError);
+  });
 });

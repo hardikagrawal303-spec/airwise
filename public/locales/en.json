@@ -1,5 +1,6 @@
 {
   "app.name": "AirWise",
+  "app.title": "AirWise — Urban Air Quality Assistant",
   "app.skipToMain": "Skip to main content",
   "app.langSwitchLabel": "Switch language to Hindi",
   "app.langSwitchText": "हिन्दी",
@@ -91,6 +92,7 @@
 
   "search.noResults": "No matching towns found. Try another spelling or enter PM2.5 manually.",
   "search.searching": "Searching towns...",
+  "search.suggestionsLabel": "City suggestions",
 
   "empty.heading": "Your family plan will appear here",
   "empty.body": "Pick your town or enter a PM2.5 number above, then select Make our plan to see your day-by-day schedule, home air checklist, and commute savings.",
@@ -126,6 +128,7 @@
   "result.opening.elevated": "{place} right now: PM2.5 is {pm25} µg/m³, which is {band} (AQI {aqi}). Because your home includes people who are more sensitive to smog, focus on cleaner hours and tight indoor air today.",
   "result.opening.high": "{place} right now: PM2.5 is {pm25} µg/m³, which is {band} (AQI {aqi}). For your family that means keeping outdoor time short, sealing indoor rooms, and watching closely for symptoms.",
   "result.defaultPlace": "Your area",
+  "result.regionLabel": "Air quality plan",
 
   "section.day.heading": "Your day",
   "section.day.patternNote": "General winter smog pattern for North India, not a local forecast.",
@@ -177,6 +180,68 @@
   "impact.disclosure.open": "How we worked this out",
   "impact.disclosure.close": "Hide how we worked this out",
   "impact.estimateNote": "Every figure above is an estimate based on approximate Indian urban transport averages.",
+  "impact.unit.km": "{value} km",
+  "impact.unit.kg": "{value} kg",
+
+  "impact.mode.car_petrol": "Petrol car",
+  "impact.mode.two_wheeler": "Two-wheeler",
+  "impact.mode.auto_cng": "CNG auto-rickshaw",
+  "impact.mode.bus": "City bus",
+  "impact.mode.metro": "Metro rail",
+  "impact.mode.cycle": "Bicycle",
+  "impact.mode.walk": "Walking",
+  "impact.mode.work_from_home": "Work from home",
+
+  "impact.modeNote.car_petrol": "Approximate average for a single-occupant petrol passenger car in urban traffic (~{factor} kg CO2e/pkm).",
+  "impact.modeNote.two_wheeler": "Approximate average for a petrol scooter or motorcycle (~{factor} kg CO2e/pkm).",
+  "impact.modeNote.auto_cng": "Approximate average for a CNG auto-rickshaw carrying 1-2 passengers (~{factor} kg CO2e/pkm).",
+  "impact.modeNote.bus": "Approximate average per passenger on an urban CNG/diesel bus at typical occupancy (~{factor} kg CO2e/pkm).",
+  "impact.modeNote.metro": "Approximate average per passenger on urban electric metro rail using Indian grid electricity (~{factor} kg CO2e/pkm).",
+  "impact.modeNote.cycle": "Zero tailpipe emissions during travel ({factor} kg CO2e/pkm).",
+  "impact.modeNote.walk": "Zero tailpipe emissions during travel ({factor} kg CO2e/pkm).",
+  "impact.modeNote.work_from_home": "Zero daily commute tailpipe emissions ({factor} kg CO2e/pkm).",
+
+  "impact.commute.summaryNone": "No commute CO2e reduction calculated for this comparison (estimate).",
+  "impact.commute.summarySwitch": "Switching {kmPerDay} km/day from {currentMode} to {newMode} can help reduce about {dailyKgCO2Saved} kg CO2e per day (~{monthlyKgCO2Saved} kg/month, estimate).",
+  "impact.commute.formula": "({currentFactor} - {newFactor}) kg CO2e/km × {kmPerDay} km/day = {dailyKgCO2Saved} kg/day; × {commuteDays} days = {monthlyKgCO2Saved} kg/month (estimate)",
+  "impact.commute.assumptionDays": "Monthly figure assumes {days} commute days per month.",
+  "impact.commute.assumptionApproximate": "Approximate averages only; actual emissions vary with vehicle age, traffic, and occupancy.",
+
+  "impact.exposure.wear_n95_outdoors.effect": "can help reduce personal particle exposure outdoors",
+  "impact.exposure.wear_n95_outdoors.summary": "If an N95/FFP2-type mask is worn with a tight face seal, it is rated to filter at least 95% of test particles (laboratory rating; real-world fit varies). This can help reduce the fine particles you breathe outdoors.",
+  "impact.exposure.wear_n95_outdoors.formula": "Laboratory filtration rating >= 95% at 0.3 um test aerosol; real-world intake depends on seal fit and wear time (estimate).",
+  "impact.exposure.wear_n95_outdoors.assumption1": "Applies to properly fitted N95/FFP2 respirators, not loose cloth or surgical masks.",
+  "impact.exposure.wear_n95_outdoors.assumption2": "Facial hair, gaps at the nose bridge, and removing the mask reduce real-world filtration.",
+
+  "impact.exposure.run_hepa_purifier.effect": "mainly reduces indoor airborne particles",
+  "impact.exposure.run_hepa_purifier.summary": "A True HEPA filter is rated to capture 99.97% of 0.3 micron test particles passing through it (laboratory rating). In a closed, right-sized room, running it continuously can help reduce indoor PM2.5.",
+  "impact.exposure.run_hepa_purifier.formula": "HEPA filter rating = 99.97% single-pass capture at 0.3 um; room-level drop depends on CADR vs room volume and air leakage (estimate).",
+  "impact.exposure.run_hepa_purifier.assumption1": "Requires windows and doors to stay mostly shut during peak smog.",
+  "impact.exposure.run_hepa_purifier.assumption2": "Filter performance drops if the unit is undersized for the room or the filter is overdue for replacement.",
+
+  "impact.exposure.diy_box_fan_filter.effect": "can help reduce indoor particles as a temporary stopgap",
+  "impact.exposure.diy_box_fan_filter.summary": "A taped box fan with a MERV-13 or HEPA replacement filter can help reduce indoor dust and smoke particles when used supervised as a low-cost stopgap.",
+  "impact.exposure.diy_box_fan_filter.formula": "Qualitative estimate: depends on fan airflow, filter grade, and sealing gaps around the filter frame.",
+  "impact.exposure.diy_box_fan_filter.assumption1": "Stopgap measure only; never leave an improvised fan-filter running unattended or near water.",
+  "impact.exposure.diy_box_fan_filter.assumption2": "Effectiveness is lower than a certified room HEPA purifier and depends on keeping gaps sealed.",
+
+  "impact.exposure.indoor_plants_realistic_note.effect": "mainly reduces indoor particle buildup",
+  "impact.exposure.indoor_plants_realistic_note.summary": "Indoor plants brighten a room, but studies show household plants do not meaningfully lower indoor PM2.5; rely on sealing, ventilation timing, and filtration instead.",
+
+  "impact.exposure.community.effect": "can help reduce local neighbourhood emissions",
+  "impact.exposure.community.summary": "Can help reduce tailpipe, generator, or open-burning smoke in your immediate street and neighbourhood over time.",
+  "impact.exposure.community.formula": "Qualitative community-emissions estimate; impact scales with how many households participate.",
+  "impact.exposure.community.assumption1": "Individual actions matter most when paired with neighbourhood and municipal compliance.",
+
+  "impact.exposure.indoor_air.effect": "mainly reduces indoor particle buildup",
+  "impact.exposure.indoor_air.summary": "Can help reduce indoor fine-particle buildup and keep your sleeping and living spaces calmer during peak smog hours.",
+  "impact.exposure.indoor_air.formula": "Qualitative indoor-air estimate (no single universal percentage applies across homes).",
+  "impact.exposure.indoor_air.assumption1": "Impact varies with room ventilation rate, outdoor AQI, and how tightly doors and windows close.",
+
+  "impact.exposure.default.effect": "can help reduce personal exposure",
+  "impact.exposure.default.summary": "Can help reduce the amount of polluted air your household breathes during peak winter inversion hours.",
+  "impact.exposure.default.formula": "Qualitative exposure-timing estimate based on duration and breathing rate outdoors.",
+  "impact.exposure.default.assumption1": "Lower breathing rate and shorter time outdoors reduce total inhaled particles, though exact amounts vary by location.",
 
   "community.printButton": "Print one page for the notice board",
   "community.shareButton": "Share summary",

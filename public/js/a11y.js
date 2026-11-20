@@ -1,16 +1,24 @@
+const announceTimers = new WeakMap();
+
 /**
- * Announce a message in a polite live region.
+ * Announce a message in a polite live region, cancelling any pending announcement on the same node.
  * @param {HTMLElement|null} liveEl
  * @param {string} message
  * @returns {void}
  */
 export function announce(liveEl, message) {
   if (!liveEl) return;
+  const pending = announceTimers.get(liveEl);
+  if (pending !== undefined) {
+    clearTimeout(pending);
+  }
   liveEl.textContent = '';
   // Brief tick ensures screen readers re-announce identical messages
-  setTimeout(() => {
+  const timerId = setTimeout(() => {
+    announceTimers.delete(liveEl);
     liveEl.textContent = String(message || '');
   }, 40);
+  announceTimers.set(liveEl, timerId);
 }
 
 /**
@@ -24,7 +32,7 @@ export function moveFocus(element) {
 }
 
 /**
- * Clear form error summary and invalid markers.
+ * Clear form error summary and invalid markers, restoring original aria-describedby tokens.
  * @param {HTMLFormElement|null} formEl
  * @param {HTMLElement|null} summaryEl
  * @param {HTMLElement|null} listEl
@@ -41,12 +49,22 @@ export function clearFormErrors(formEl, summaryEl, listEl) {
   const invalidEls = formEl.querySelectorAll('[aria-invalid="true"]');
   for (const el of invalidEls) {
     el.removeAttribute('aria-invalid');
-    el.removeAttribute('aria-describedby');
+    const orig = el.dataset?.origDescribedby;
+    if (orig !== undefined) {
+      if (orig.trim()) {
+        el.setAttribute('aria-describedby', orig);
+      } else {
+        el.removeAttribute('aria-describedby');
+      }
+      delete el.dataset.origDescribedby;
+    } else {
+      el.removeAttribute('aria-describedby');
+    }
   }
 }
 
 /**
- * Show validation errors and mark invalid fields.
+ * Show validation errors, assign unique error IDs, and preserve existing aria-describedby tokens.
  * @param {Array<{fieldId: string, message: string}>} errors
  * @param {object} opts
  * @returns {void}
@@ -55,8 +73,10 @@ export function showFormErrors(errors, { summaryEl, listEl, doc = document }) {
   if (!summaryEl || !listEl) return;
   listEl.textContent = '';
 
-  for (const err of errors) {
+  errors.forEach((err, index) => {
+    const errId = `error-${err.fieldId || index}`;
     const li = doc.createElement('li');
+    li.id = errId;
     const link = doc.createElement('a');
     link.href = `#${err.fieldId}`;
     link.textContent = err.message;
@@ -72,10 +92,17 @@ export function showFormErrors(errors, { summaryEl, listEl, doc = document }) {
 
     const field = doc.getElementById(err.fieldId);
     if (field) {
+      if (field.dataset && field.dataset.origDescribedby === undefined) {
+        field.dataset.origDescribedby = field.getAttribute('aria-describedby') ?? '';
+      }
+      const existing = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+      if (!existing.includes(errId)) {
+        existing.push(errId);
+      }
       field.setAttribute('aria-invalid', 'true');
-      field.setAttribute('aria-describedby', 'error-summary');
+      field.setAttribute('aria-describedby', existing.join(' '));
     }
-  }
+  });
 
   summaryEl.hidden = false;
   moveFocus(summaryEl);

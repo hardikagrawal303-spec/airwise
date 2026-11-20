@@ -70,6 +70,12 @@ export function applyTranslations(root = document, lang = currentLang) {
   if (root.documentElement) {
     root.documentElement.lang = currentLang;
   }
+  if ('title' in root) {
+    const translatedTitle = t('app.title', {}, currentLang);
+    if (translatedTitle !== 'app.title') {
+      root.title = translatedTitle;
+    }
+  }
 
   const textNodes = root.querySelectorAll('[data-i18n]');
   for (const el of textNodes) {

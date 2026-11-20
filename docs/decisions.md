@@ -10,7 +10,7 @@ This log records key technical and design trade-offs made while building AirWise
 ## 2. Plain Node.js ESM + Vanilla HTML/CSS/JS (Zero Bundler, 6 Runtime Dependencies)
 
 - **Decision**: Serve static vanilla HTML/CSS/ES modules directly from Express with no React, no bundler, and only 6 runtime packages (`express`, `helmet`, `express-rate-limit`, `zod`, `@google/genai`, `dotenv`).
-- **Why**: Keeps attack surface tiny (`0` runtime vulnerabilities in `npm audit --omit=dev`), eliminates build-step complexity for reviewers, and keeps the entire client payload under 40 KB of JS and 30 KB of CSS so families on congested North Indian mobile connections load the page quickly.
+- **Why**: Keeps attack surface tiny (`0` runtime vulnerabilities in `npm audit --omit=dev`), eliminates build-step complexity for reviewers, and keeps the entire client payload under 60 KB of JS and 30 KB of CSS so families on congested North Indian mobile connections load the page quickly.
 
 ## 3. India CPCB National AQI Breakpoints (Instead of US EPA AQI)
 

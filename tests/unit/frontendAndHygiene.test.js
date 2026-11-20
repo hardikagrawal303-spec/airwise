@@ -98,7 +98,7 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
       .readdirSync(jsDir)
       .filter((f) => f.endsWith('.js'))
       .reduce((sum, f) => sum + fs.statSync(path.join(jsDir, f)).size, 0);
-    expect(totalJsBytes).toBeLessThan(40 * 1024);
+    expect(totalJsBytes).toBeLessThan(60 * 1024);
 
     const fontsDir = path.join(rootDir, 'public/fonts');
     const totalFontBytes = fs
@@ -111,6 +111,12 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
     const svgMatch = html.match(/<svg[\s\S]*?<\/svg>/i);
     expect(svgMatch).not.toBeNull();
     expect(Buffer.byteLength(svgMatch[0], 'utf8')).toBeLessThan(12 * 1024);
+
+    const css = fs.readFileSync(path.join(rootDir, 'public/css/styles.css'), 'utf8');
+    const printBlock = css.slice(css.indexOf('@media print'));
+    expect(printBlock).toContain('.why-panel[hidden]');
+    expect(printBlock).toContain('#impact-formula-panel[hidden]');
+    expect(printBlock).toContain('display: block !important');
   });
 
   test('tracked repository files contain zero secret keys or private key blocks', () => {

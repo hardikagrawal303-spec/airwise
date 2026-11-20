@@ -146,4 +146,55 @@ describe('AirWise API routes integration', () => {
     expect(outOfRangeRes.status).toBe(400);
     expect(outOfRangeRes.body.error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
   });
+
+  test('accepts Devanagari combining marks and Latin place names, and rejects scripts, control chars, and overlong input', async () => {
+    const { app } = createTestApp();
+
+    const validPlaces = ['मथुरा', 'देहरादून', 'नई दिल्ली', 'Dehradun, Uttarakhand'];
+    for (const place of validPlaces) {
+      const geoRes = await request(app).get(`/api/geocode?q=${encodeURIComponent(place)}`);
+      expect(geoRes.status).toBe(200);
+
+      const planRes = await request(app)
+        .post('/api/plan')
+        .send({
+          manual: { pm25: 180, label: place },
+          profile: { ...validProfile, language: 'hi' },
+        });
+      expect(planRes.status).toBe(200);
+      expect(planRes.body.aqi.placeLabel).toBe(place);
+    }
+
+    const invalidGeocodeQueries = [
+      '<script>',
+      'Mathura\u0000',
+      'Mathura\nInject',
+      'Mathura\u001b[31m',
+      '"Delhi"',
+      'अ'.repeat(81),
+    ];
+    for (const bad of invalidGeocodeQueries) {
+      const res = await request(app).get(`/api/geocode?q=${encodeURIComponent(bad)}`);
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+    }
+
+    const invalidPlanLabels = [
+      '<script>',
+      'मथुरा\u0000',
+      'मथुरा\r\nदिल्ली',
+      '"Mathura"',
+      'म'.repeat(101),
+    ];
+    for (const badLabel of invalidPlanLabels) {
+      const res = await request(app)
+        .post('/api/plan')
+        .send({
+          manual: { pm25: 180, label: badLabel },
+          profile: validProfile,
+        });
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+    }
+  });
 });

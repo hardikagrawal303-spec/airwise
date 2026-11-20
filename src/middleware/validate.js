@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { AppError, ERROR_CODES } from '../utils/errors.js';
 
-const SAFE_PLACE_TEXT_REGEX = /^[\p{L}\p{N}\s,.'()-]*$/u;
+// Allow Unicode letters, combining marks (e.g. Devanagari matras), digits, spaces, and basic punctuation;
+// exclude control characters (\r, \n, \t, NUL), angle brackets, and double quotes.
+const SAFE_PLACE_TEXT_REGEX = /^[\p{L}\p{M}\p{N}\p{Zs},.'()-]*$/u;
 
 export const geocodeQuerySchema = z
   .object({

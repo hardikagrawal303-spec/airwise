@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { jest } from '@jest/globals';
 import { JSDOM } from 'jsdom';
-import { ClientApiError, fetchJson } from '../../public/js/api.js';
+import { ClientApiError, fetchJson, geocodeCities } from '../../public/js/api.js';
 import { initCityCombobox } from '../../public/js/combobox.js';
 import { bindFormSubmission, collectAndValidateForm } from '../../public/js/form.js';
 import {
@@ -364,6 +364,21 @@ describe('Frontend interactive behaviour (jsdom + mocked fetch)', () => {
       expect(caught).toBeInstanceOf(ClientApiError);
       expect(caught.status).toBe(502);
       expect(caught.localeKey).toBe('error.INTERNAL_ERROR');
+    });
+
+    test('geocodeCities encodes Hindi Devanagari queries with encodeURIComponent', async () => {
+      const mockFetch = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          results: [{ lat: 28.6139, lon: 77.209, label: 'New Delhi, Delhi' }],
+        }),
+      }));
+
+      const results = await geocodeCities(' नई दिल्ली ', mockFetch);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(`/api/geocode?q=${encodeURIComponent('नई दिल्ली')}`);
+      expect(results).toHaveLength(1);
     });
   });
 

@@ -105,12 +105,8 @@ export async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImp
  * @returns {Promise<Array<object>>}
  */
 export async function geocodeCities(query, fetchImpl = fetch) {
-  const params = new URLSearchParams({ q: String(query || '').trim() });
-  const data = await fetchJson(
-    `/api/geocode?${params.toString()}`,
-    { method: 'GET' },
-    { fetchImpl }
-  );
+  const encoded = encodeURIComponent(String(query || '').trim());
+  const data = await fetchJson(`/api/geocode?q=${encoded}`, { method: 'GET' }, { fetchImpl });
   return Array.isArray(data?.results) ? data.results : [];
 }
 

@@ -11,6 +11,45 @@ import {
 } from './airQualityService.js';
 import { geminiService as defaultGeminiService } from './geminiService.js';
 
+async function resolveAirReading({ location, manual, airQualityService }) {
+  if (manual && typeof manual.pm25 === 'number') {
+    return {
+      airReading: createManualAirReading(manual),
+      placeLabel: manual.label ? String(manual.label).trim() : '',
+    };
+  }
+  return {
+    airReading: await airQualityService.getAirQuality(location.lat, location.lon),
+    placeLabel: location.label ? String(location.label).trim() : '',
+  };
+}
+
+function assemblePlanItems(selectedActions, personalized, locale) {
+  const personalizedMap = new Map(personalized.items.map((item) => [item.actionId, item]));
+  return selectedActions.map((action) => {
+    const p = personalizedMap.get(action.id);
+    return {
+      id: action.id,
+      category: action.category,
+      daypart: action.daypart,
+      cost: action.cost,
+      effort: action.effort,
+      text: p?.personalizedText || locale[action.textKey] || action.id,
+      whyItMatters: p?.whyItMatters || locale[action.impactNoteKey] || '',
+      impact: estimateExposureReduction(action.id),
+    };
+  });
+}
+
+function groupByCategory(items) {
+  return Object.fromEntries(
+    VALID_CATEGORIES.map((category) => [
+      category,
+      items.filter((item) => item.category === category),
+    ])
+  );
+}
+
 /**
  * Orchestrate the full AirWise decision pipeline from air reading to personalized plan.
  *
@@ -24,22 +63,13 @@ export function createPlanBuilder({
   geminiService = defaultGeminiService,
 } = {}) {
   async function buildPlan({ location, manual, profile }) {
-    let airReading;
-    let placeLabel;
-
-    if (manual && typeof manual.pm25 === 'number') {
-      airReading = createManualAirReading(manual);
-      placeLabel = manual.label ? String(manual.label).trim() : '';
-    } else {
-      airReading = await airQualityService.getAirQuality(location.lat, location.lon);
-      placeLabel = location.label ? String(location.label).trim() : '';
-    }
-
-    const aqiResult = calculateAqi({
-      pm25: airReading.pm25,
-      pm10: airReading.pm10,
+    const { airReading, placeLabel } = await resolveAirReading({
+      location,
+      manual,
+      airQualityService,
     });
 
+    const aqiResult = calculateAqi({ pm25: airReading.pm25, pm10: airReading.pm10 });
     const risk = evaluateRiskProfile(profile, aqiResult);
     const selectedActions = selectActions({ aqiResult, profile, risk });
     const { timeline, bestHours } = buildTimeSlots({
@@ -59,29 +89,8 @@ export function createPlanBuilder({
       language,
     });
 
-    const personalizedMap = new Map(personalized.items.map((item) => [item.actionId, item]));
-
-    const items = selectedActions.map((action) => {
-      const p = personalizedMap.get(action.id);
-      return {
-        id: action.id,
-        category: action.category,
-        daypart: action.daypart,
-        cost: action.cost,
-        effort: action.effort,
-        text: p?.personalizedText || locale[action.textKey] || action.id,
-        whyItMatters: p?.whyItMatters || locale[action.impactNoteKey] || '',
-        impact: estimateExposureReduction(action.id),
-      };
-    });
-
-    const sections = Object.fromEntries(
-      VALID_CATEGORIES.map((category) => [
-        category,
-        items.filter((item) => item.category === category),
-      ])
-    );
-
+    const items = assemblePlanItems(selectedActions, personalized, locale);
+    const sections = groupByCategory(items);
     const timelineWithText = timeline.map((slot) => ({
       daypart: slot.daypart,
       timeWindow: slot.timeWindow,

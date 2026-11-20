@@ -46,6 +46,42 @@ function buildPatternFallback() {
   };
 }
 
+function findLowestPm25Window(points) {
+  // Prefer the cleanest 3-hour contiguous window if at least 3 points exist
+  if (points.length >= 3) {
+    let bestStart = 0;
+    let bestAvg = Number.POSITIVE_INFINITY;
+    for (let i = 0; i <= points.length - 3; i += 1) {
+      const avg = (points[i].pm25 + points[i + 1].pm25 + points[i + 2].pm25) / 3;
+      if (avg < bestAvg) {
+        bestAvg = avg;
+        bestStart = i;
+      }
+    }
+    const slice = points.slice(bestStart, bestStart + 3);
+    return {
+      windowSource: 'hourly_model',
+      isForecast: true,
+      isPattern: false,
+      windowLabel: formatHourRange(slice[0].time, slice[slice.length - 1].time),
+      hours: slice.map((p) => ({ time: p.time, pm25: Math.round(p.pm25 * 10) / 10 })),
+      averagePm25: Math.round(bestAvg * 10) / 10,
+      noteKey: 'timeslots.hourly_note',
+    };
+  }
+
+  const cleanest = [...points].sort((a, b) => a.pm25 - b.pm25)[0];
+  return {
+    windowSource: 'hourly_model',
+    isForecast: true,
+    isPattern: false,
+    windowLabel: formatHourRange(cleanest.time, cleanest.time),
+    hours: [{ time: cleanest.time, pm25: Math.round(cleanest.pm25 * 10) / 10 }],
+    averagePm25: Math.round(cleanest.pm25 * 10) / 10,
+    noteKey: 'timeslots.hourly_note',
+  };
+}
+
 /**
  * Find the lowest-PM2.5 hours in the next 24h from Open-Meteo hourly data.
  *
@@ -71,44 +107,7 @@ export function findBestHours(hourlyData) {
     }
   }
 
-  if (points.length === 0) {
-    return buildPatternFallback();
-  }
-
-  // Prefer the cleanest 3-hour contiguous window if at least 3 points exist
-  if (points.length >= 3) {
-    let bestStart = 0;
-    let bestAvg = Number.POSITIVE_INFINITY;
-    for (let i = 0; i <= points.length - 3; i += 1) {
-      const avg = (points[i].pm25 + points[i + 1].pm25 + points[i + 2].pm25) / 3;
-      if (avg < bestAvg) {
-        bestAvg = avg;
-        bestStart = i;
-      }
-    }
-    const slice = points.slice(bestStart, bestStart + 3);
-    return {
-      windowSource: 'hourly_model',
-      isForecast: true,
-      isPattern: false,
-      windowLabel: formatHourRange(slice[0].time, slice[slice.length - 1].time),
-      hours: slice.map((p) => ({ time: p.time, pm25: Math.round(p.pm25 * 10) / 10 })),
-      averagePm25: Math.round(bestAvg * 10) / 10,
-      noteKey: 'timeslots.hourly_note',
-    };
-  }
-
-  const sorted = [...points].sort((a, b) => a.pm25 - b.pm25);
-  const cleanest = sorted[0];
-  return {
-    windowSource: 'hourly_model',
-    isForecast: true,
-    isPattern: false,
-    windowLabel: formatHourRange(cleanest.time, cleanest.time),
-    hours: [{ time: cleanest.time, pm25: Math.round(cleanest.pm25 * 10) / 10 }],
-    averagePm25: Math.round(cleanest.pm25 * 10) / 10,
-    noteKey: 'timeslots.hourly_note',
-  };
+  return points.length === 0 ? buildPatternFallback() : findLowestPm25Window(points);
 }
 
 /**
@@ -129,24 +128,17 @@ export function buildTimeSlots({ aqiResult, actions = [], hourlyData = null } = 
   const severityTier = aqiRank >= CATEGORY_RANK['Poor'] ? 'high' : 'moderate';
   const bestHours = findBestHours(hourlyData);
 
-  const timeline = DAYPART_ORDER.map((daypart) => {
-    const matchingActionIds = actions.filter((a) => a.daypart === daypart).map((a) => a.id);
+  const timeline = DAYPART_ORDER.map((daypart) => ({
+    daypart,
+    timeWindow:
+      daypart === 'midday' && bestHours.windowSource === 'hourly_model'
+        ? bestHours.windowLabel
+        : DEFAULT_TIME_WINDOWS[daypart],
+    guidanceKey: `timeslots.${daypart}.${severityTier}`,
+    isPattern: bestHours.isPattern,
+    noteKey: bestHours.noteKey,
+    actionIds: actions.filter((a) => a.daypart === daypart).map((a) => a.id),
+  }));
 
-    return {
-      daypart,
-      timeWindow:
-        daypart === 'midday' && bestHours.windowSource === 'hourly_model'
-          ? bestHours.windowLabel
-          : DEFAULT_TIME_WINDOWS[daypart],
-      guidanceKey: `timeslots.${daypart}.${severityTier}`,
-      isPattern: bestHours.isPattern,
-      noteKey: bestHours.noteKey,
-      actionIds: matchingActionIds,
-    };
-  });
-
-  return {
-    timeline,
-    bestHours,
-  };
+  return { timeline, bestHours };
 }

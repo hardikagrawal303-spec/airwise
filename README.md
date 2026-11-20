@@ -17,16 +17,16 @@
 
 ## 3. Problem & Requirement → Feature Mapping
 
-| Requirement / Real-World Need                                                           | AirWise Feature                                                                                                                       | Implementation                                                                          |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Accurate local severity using India's official scale                                    | India **CPCB National AQI** calculator (PM2.5 & PM10 linear sub-indices, 6 bands)                                                     | `src/config/aqiBreakpoints.js`, `src/engine/aqi.js`                                     |
-| Works anywhere in India, even without external API keys or when feeds fail              | **Open-Meteo** geocoding & air-quality lookup + **manual PM2.5/PM10 entry** + opt-in browser geolocation                              | `src/services/airQualityService.js`, `public/js/main.js`                                |
-| Tailored to children, older adults, breathing/heart conditions, budget, fuel & purifier | **Household risk profiler** (`standard`, `elevated`, `high`) & **34-action rule selector** (capped at 12 balanced actions)            | `src/engine/riskProfile.js`, `src/knowledge/actions.js`, `src/engine/actionSelector.js` |
-| Practical hour-by-hour timing around winter inversions                                  | **5-stop daily timeline** (`Early morning` → `Night`) using hourly lowest-PM2.5 window or North Indian winter pattern                 | `src/engine/timeSlots.js`, `public/js/render.js`                                        |
-| Realistic, honest sustainable switches                                                  | **Transparent commute CO₂e comparison table** with expandable _"How we worked this out"_ formula & assumptions                        | `src/config/emissionFactors.js`, `src/engine/impact.js`                                 |
-| Warm, context-aware phrasing without AI hallucinations                                  | **Constrained Google Gemini personalization** strictly bound to engine-selected `actionId`s, Zod-validated, with silent rule fallback | `src/services/geminiService.js`, `src/services/planBuilder.js`                          |
-| Collective neighbourhood action                                                         | **RWA/colony actions**, **one-page print notice-board stylesheet**, and Web Share / clipboard summary                                 | `public/css/styles.css` (`@media print`), `public/js/main.js`                           |
-| Inclusive access across languages, devices, and abilities                               | **English + natural Hindi** (`en.json`, `hi.json`), **Light ("Haze Paper") & Dark ("Night Smog")** themes, WCAG 2.1 AA                | `public/locales/*`, `public/js/i18n.js`, `public/js/a11y.js`                            |
+| Requirement / Real-World Need                                                           | AirWise Feature                                                                                                                       | Implementation                                                                                 |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Accurate local severity using India's official scale                                    | India **CPCB National AQI** calculator (PM2.5 & PM10 linear sub-indices, 6 bands)                                                     | `src/config/aqiBreakpoints.js`, `src/engine/aqi.js`                                            |
+| Works anywhere in India, even without external API keys or when feeds fail              | **Open-Meteo** geocoding & air-quality lookup + **manual PM2.5/PM10 entry** + opt-in browser geolocation                              | `src/services/airQualityService.js`, `public/js/combobox.js`, `public/js/geolocation.js`       |
+| Tailored to children, older adults, breathing/heart conditions, budget, fuel & purifier | **Household risk profiler** (`standard`, `elevated`, `high`) & **34-action rule selector** (capped at 12 balanced actions)            | `src/engine/riskProfile.js`, `src/knowledge/actions.js`, `src/engine/actionSelector.js`        |
+| Practical hour-by-hour timing around winter inversions                                  | **5-stop daily timeline** (`Early morning` → `Night`) using hourly lowest-PM2.5 window or North Indian winter pattern                 | `src/engine/timeSlots.js`, `public/js/render.js`, `public/js/renderIcons.js`                   |
+| Realistic, honest sustainable switches                                                  | **Transparent commute CO₂e comparison table** with expandable _"How we worked this out"_ formula & assumptions                        | `src/config/emissionFactors.js`, `src/engine/impact.js`                                        |
+| Warm, context-aware phrasing without AI hallucinations                                  | **Constrained Google Gemini personalization** strictly bound to engine-selected `actionId`s, Zod-validated, with silent rule fallback | `src/services/geminiService.js`, `src/services/geminiSchema.js`, `src/services/planBuilder.js` |
+| Collective neighbourhood action                                                         | **RWA/colony actions**, **one-page print notice-board stylesheet**, and Web Share / clipboard summary                                 | `public/css/styles.css` (`@media print`), `public/js/main.js`                                  |
+| Inclusive access across languages, devices, and abilities                               | **English + natural Hindi** (`en.json`, `hi.json`), **Light ("Haze Paper") & Dark ("Night Smog")** themes, WCAG 2.1 AA                | `public/locales/*`, `public/js/i18n.js`, `public/js/a11y.js`                                   |
 
 ---
 
@@ -159,7 +159,7 @@ flowchart LR
 ## 7. Security Measures
 
 - **Strict Content Security Policy (Helmet)**: `default-src 'self'`, `script-src 'self'`, `style-src 'self'`, `font-src 'self'`, `img-src 'self' data:`, `connect-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`. Zero inline scripts, zero inline styles, zero external CDNs.
-- **No XSS Sink**: Frontend DOM rendering (`public/js/render.js`, `public/js/main.js`) uses `document.createElement` and `textContent` exclusively (enforced by automated tests; zero `.innerHTML`). Server strips any HTML tags from AI text.
+- **No XSS Sink**: Frontend DOM rendering (`public/js/*`) uses `document.createElement` and `textContent` exclusively (enforced by automated tests; zero `.innerHTML`). Server strips any HTML tags from AI text.
 - **Input Validation & Body Limits**: All endpoints validate inputs via strict Zod schemas (`.strict()` rejects unknown fields); JSON payload capped at `10kb`; `x-powered-by` disabled.
 - **Origin Protection & Proxy Hygiene**: `originGuard` permits missing `Origin` (same-origin GET/curl), matching `Host` header, the first `X-Forwarded-Host` entry (only when `TRUST_PROXY` is active), configured `ALLOWED_ORIGINS` (comma-separated, trimmed, trailing slashes removed), and in non-production (`NODE_ENV !== "production"`) any `http://localhost` or `http://127.0.0.1` origin on any port. Rejected origins log a single warning containing only `Origin`, `Host`, and `X-Forwarded-Host` and return `403` (`ORIGIN_NOT_ALLOWED`). `TRUST_PROXY` defaults to `1` on Cloud Run / AI Studio preview and `false` locally; it accepts `false`, non-negative integer hop counts, or IPv4/IPv6 CIDR range(s), and rejects `"true"`.
 - **Rate Limiting**: Global limiter (`100 req / 15 min` default) plus stricter `/api/plan` limiter (`33 req / 15 min` default) via `express-rate-limit`, forwarding `429 RATE_LIMITED` errors through the centralized `errorHandler` so responses include `requestId`.
@@ -193,7 +193,7 @@ Full rationale is documented in [`docs/design.md`](docs/design.md). Key choices:
 - **Minimal Dependency Footprint**: Only **6 runtime dependencies** (`express`, `helmet`, `express-rate-limit`, `zod`, `@google/genai`, `dotenv`) — zero frontend frameworks or bundlers.
 - **Tiny Client Payload** (measured and enforced by automated tests):
   - CSS (`public/css/styles.css`): **26.8 KB** (budget < 30 KB)
-  - JavaScript (`public/js/*.js` total): **38.5 KB** (budget < 40 KB)
+  - JavaScript (`public/js/*.js` total): **39.8 KB** (budget < 40 KB)
   - Self-hosted subsetted woff2 fonts (Latin + Devanagari): **127.1 KB** (budget < 150 KB)
   - Inline skyline SVG: **5.8 KB** (budget < 12 KB)
 - **Bounded Caching**: In-memory LRU+TTL cache (`10 min` default for air quality keyed by `0.01°`-rounded coordinates, ~1.1 km; `30 min` / `3×` TTL for geocoding; max `200` entries each) prevents redundant upstream fetches.
@@ -211,10 +211,10 @@ npm run test:coverage
 npm run lint
 ```
 
-### What Is Covered (11 Suites · 121 Tests)
+### What Is Covered (12 Suites · 122 Tests)
 
 - **Unit tests** (`tests/unit/`): CPCB AQI boundary breakpoints & dominant pollutant (`aqi.test.js`), household risk scoring (`riskProfile.test.js`), 34-action rule filtering & caps (`actionSelector.test.js`), daypart timeline & best-hour detection (`timeSlots.test.js`), transparent CO₂e impact math (`impact.test.js`), LRU/TTL cache (`cache.test.js`), Open-Meteo parsing & timeouts (`airQualityService.test.js`), Gemini schema validation, markup stripping, prompt-injection isolation, and fallback (`geminiService.test.js`), frontend error mapping, locale parity, strict CSP/budget checks, `public/` allowlist, and git secret scan (`frontendAndHygiene.test.js`).
-- **Integration tests** (`tests/integration/api.test.js`): Supertest end-to-end checks on `/api/health`, `/api/geocode`, `/api/air`, `/api/plan`, CSP headers, unknown-key rejection, `403 ORIGIN_NOT_ALLOWED` origin guard (including forwarded host, `ALLOWED_ORIGINS`, and `TRUST_PROXY` validation), `413` body limit, and `429` rate limit with `requestId`.
+- **Integration tests** (`tests/integration/`): Supertest API route suite (`api.test.js` covering `/api/health`, `/api/geocode`, `/api/air`, `/api/plan`, Gemini 403 fallback, upstream failure fallback, unknown-key/range rejection) and dedicated security suite (`security.test.js` covering CSP headers, `413` body cap, `403 ORIGIN_NOT_ALLOWED` origin guard, `TRUST_PROXY` validation, and `429` rate limit with `requestId`), sharing `testApp.js`.
 - **Accessibility tests** (`tests/a11y/a11y.test.js`): `axe-core` + `jsdom` zero-violation checks on initial & rendered results states, label association, bilingual `html[lang]`, live region announcements, and 6-band skyline state transitions.
 - **Lint & formatting** (`npm run lint`): runs `eslint . && prettier --check .`, including a custom ESLint rule requiring JSDoc (`@param`/`@returns`) on all exported functions in `src/` and `public/js/`.
 
@@ -224,9 +224,9 @@ Coverage scope (`collectCoverageFrom`): `src/engine/**/*.js`, `src/services/**/*
 
 | File / Directory |    % Stmts |   % Branch |    % Funcs |    % Lines |
 | ---------------- | ---------: | ---------: | ---------: | ---------: |
-| **All files**    | **93.92%** | **83.56%** | **94.66%** | **94.30%** |
-| `src/engine`     | **94.33%** | **89.60%** | **96.55%** | **94.91%** |
-| `src/services`   | **95.85%** | **76.96%** | **96.87%** | **96.23%** |
+| **All files**    | **94.44%** | **83.19%** | **95.29%** | **94.96%** |
+| `src/engine`     | **94.93%** | **89.17%** | **96.66%** | **95.57%** |
+| `src/services`   | **96.44%** | **76.96%** | **97.56%** | **97.23%** |
 | `src/utils`      | **87.14%** | **73.77%** | **85.71%** | **87.14%** |
 
 ---
@@ -253,7 +253,7 @@ airwise/
 ├── public/
 │   ├── css/styles.css           # Haze Paper / Night Smog tokens, skyline haze, print sheet
 │   ├── fonts/                   # Self-hosted subsetted Bricolage Grotesque & Hind + OFL licences
-│   ├── js/                      # Vanilla ES modules (main, api, render, haze, i18n, a11y)
+│   ├── js/                      # Vanilla ES modules (main, combobox, geolocation, form, api, render, renderIcons, haze, i18n, a11y)
 │   ├── locales/                 # Key-identical en.json & hi.json translations
 │   └── index.html               # Semantic HTML + 5-layer riverfront SVG skyline
 ├── src/
@@ -262,13 +262,13 @@ airwise/
 │   ├── knowledge/               # 34 curated North Indian actions & locale loader
 │   ├── middleware/              # Helmet CSP, origin guard, rate limits, Zod validators, error handler
 │   ├── routes/                  # /api/health, /api/geocode, /api/air, /api/plan
-│   ├── services/                # Open-Meteo client, Gemini personalizer, plan orchestrator
+│   ├── services/                # Open-Meteo client, Gemini client & schema/sanitizer, plan orchestrator
 │   ├── utils/                   # Structured PII-free logger, typed AppErrors, LRU+TTL cache
 │   ├── app.js                   # Express app factory (testable via Supertest)
 │   └── server.js                # HTTP server entry point & graceful shutdown
 ├── tests/
 │   ├── a11y/                    # axe-core + jsdom WCAG 2.1 AA tests
-│   ├── integration/             # Supertest API & security header tests
+│   ├── integration/             # Supertest API routes (api.test.js), security (security.test.js) & testApp.js
 │   └── unit/                    # Engine, service, frontend & secret-hygiene tests
 ├── .env.example                 # Safe configuration template (no secrets)
 ├── .gitignore                   # Ignored local, build, and runtime artifact paths

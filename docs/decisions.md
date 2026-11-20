@@ -4,7 +4,7 @@ This log records key technical and design trade-offs made while building AirWise
 
 ## 1. Hybrid Rule Engine + Constrained Gemini (Instead of Pure LLM Generation)
 
-- **Decision**: Select all guidance actions deterministically from a 34-item curated knowledge base (`src/knowledge/actions.js` + `src/engine/actionSelector.js`), and restrict Gemini (`src/services/geminiService.js`) to personalizing wording for those exact `actionId`s under a strict JSON schema.
+- **Decision**: Select all guidance actions deterministically from a 34-item curated knowledge base (`src/knowledge/actions.js` + `src/engine/actionSelector.js`), and restrict Gemini (`src/services/geminiService.js` + `src/services/geminiSchema.js`) to personalizing wording for those exact `actionId`s under a strict JSON schema.
 - **Why**: Air-quality guidance touches respiratory health for children and older adults. Pure LLM generation risks medical overclaiming, hallucinated remedies, or broken layouts if an API key is missing or rate-limited. With the hybrid pattern, AirWise works 100% deterministically even with `GEMINI_API_KEY=""`, never invents actions, and degrades silently (`copySource: "rules"`) on timeouts, invalid keys, or schema mismatches.
 
 ## 2. Plain Node.js ESM + Vanilla HTML/CSS/JS (Zero Bundler, 6 Runtime Dependencies)

@@ -1,14 +1,16 @@
+import { byId } from './a11y.js';
 import { ClientApiError, geocodeCities, mapErrorToLocaleKey } from './api.js';
 
 /**
  * Initialise city search combobox with keyboard navigation and debounced lookup.
- * @param {object} opts
- * @returns {{ selectCity: Function, closeListbox: Function }}
+ * @param {{ onSelectLocation: (loc: import('../../src/types.d.ts').SelectedLocation | null) => void, t: import('../../src/types.d.ts').TranslateFn, onError: (key: string) => void, debounceMs: number }} opts
+ * @returns {{ selectCity: (city: import('../../src/types.d.ts').GeocodeResult) => void, closeListbox: () => void }}
  */
-export function initCityCombobox({ state, t, onError, debounceMs }) {
-  const input = document.getElementById('city-input');
-  const listbox = document.getElementById('city-listbox');
-  const statusEl = document.getElementById('city-status');
+export function initCityCombobox({ onSelectLocation, t, onError, debounceMs }) {
+  /** @type {HTMLInputElement|null} */
+  const input = /** @type {HTMLInputElement|null} */ (byId('city-input'));
+  const listbox = byId('city-listbox');
+  const statusEl = byId('city-status');
   const wrap = input?.closest('.combobox-wrap') || input;
   let suggestions = [];
   let activeIndex = -1;
@@ -35,7 +37,7 @@ export function initCityCombobox({ state, t, onError, debounceMs }) {
   }
 
   function selectCity(city) {
-    state.selectedLocation = { lat: city.lat, lon: city.lon, label: city.label };
+    onSelectLocation({ lat: city.lat, lon: city.lon, label: city.label });
     if (input) {
       input.value = city.label;
       input.removeAttribute('aria-invalid');
@@ -91,7 +93,7 @@ export function initCityCombobox({ state, t, onError, debounceMs }) {
   if (!input) return { selectCity, closeListbox };
 
   input.addEventListener('input', () => {
-    state.selectedLocation = null;
+    onSelectLocation(null);
     clearTimeout(debounceTimer);
     const query = input.value.trim();
     if (query.length < 2) {
@@ -131,8 +133,9 @@ export function initCityCombobox({ state, t, onError, debounceMs }) {
     }
   });
 
-  wrap?.addEventListener('focusout', (e) => {
-    if (!e.relatedTarget || !wrap.contains(e.relatedTarget)) {
+  wrap?.addEventListener('focusout', (/** @type {FocusEvent} */ e) => {
+    const related = /** @type {Node|null} */ (e.relatedTarget);
+    if (!related || !wrap.contains(related)) {
       closeListbox();
     }
   });

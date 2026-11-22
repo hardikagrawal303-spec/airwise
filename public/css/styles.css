@@ -1,4 +1,20 @@
 /* ==========================================================================
+   AirWise Stylesheet — Table of Contents
+   01. Self-hosted, subsetted fonts
+   02. Design Tokens — Light Theme ("Haze Paper") & Dark Theme ("Night Smog")
+   03. Six AQI Haze States (driven strictly by hero[data-band])
+   04. Base Reset & Typography
+   05. Header
+   06. Hero & Layered Haze Skyline
+   07. Onboarding Sentence Form
+   08. Reading Column & Results
+   09. Sections: Timeline, Calm Lists, Impact Table, Neighbourhood
+   10. Footer
+   11. Responsive Adjustments (320px upwards)
+   12. Print Stylesheet — One-Page Black-on-White Notice Board Sheet
+   ========================================================================== */
+
+/* ==========================================================================
    Self-hosted, subsetted fonts (total woff2 payload ~127 KB, zero external requests)
    ========================================================================== */
 @font-face {

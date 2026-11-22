@@ -101,7 +101,7 @@ function parseAllowedOrigins(raw) {
  * Validate environment variables and return a frozen runtime configuration object.
  *
  * @param {Record<string, string|undefined>} [envSource=process.env] - Environment variable map.
- * @returns {Readonly<object>} Frozen validated application config.
+ * @returns {import('../types.d.ts').AppConfig} Frozen validated application config.
  */
 export function loadConfig(envSource = process.env) {
   const parsed = envSchema.safeParse(envSource);
@@ -137,7 +137,6 @@ export function loadConfig(envSource = process.env) {
     serverShutdownTimeoutMs: 10000,
     aqiCacheTtlMs: data.AQI_CACHE_TTL_SECONDS * 1000,
     geocodeCacheTtlMultiplier: 3,
-    geocodeCacheTtlMs: data.AQI_CACHE_TTL_SECONDS * 1000 * 3,
     cacheMaxEntries: 200,
     geocodeResultCount: 5,
     geocodeCoordPrecision: 4,

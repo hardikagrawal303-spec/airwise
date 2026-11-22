@@ -30,6 +30,7 @@ async function callWithTimeout(promiseFn, timeoutMs) {
   let timer;
   const timeoutPromise = new Promise((_, reject) => {
     timer = setTimeout(() => {
+      /** @type {Error & { code?: string }} */
       const err = new Error('Gemini request timed out');
       err.code = 'TIMEOUT';
       reject(err);
@@ -108,12 +109,8 @@ async function callGeminiWithRetry({
 /**
  * Create a constrained Gemini personalization service with silent rule-based fallback.
  *
- * @param {object} [options] - Service configuration and test overrides.
- * @param {string|null} [options.apiKey] - Gemini API key (null disables AI calls).
- * @param {string} [options.model] - Target Gemini model identifier.
- * @param {number} [options.timeoutMs] - Per-call timeout in milliseconds.
- * @param {Function|null} [options.clientFactory=null] - Optional SDK factory for tests.
- * @returns {{ isEnabled: () => boolean, personalizePlan: Function }} Gemini personalization service.
+ * @param {{ apiKey?: string|null, model?: string, timeoutMs?: number, clientFactory?: ((opts: { apiKey: string }) => any)|null }} [options] - Service configuration and test overrides.
+ * @returns {import('../types.d.ts').GeminiService} Gemini personalization service.
  */
 export function createGeminiService({
   apiKey = config.geminiApiKey,
@@ -138,6 +135,7 @@ export function createGeminiService({
     return client;
   }
 
+  /** @type {import('../types.d.ts').GeminiService['personalizePlan']} */
   async function personalizePlan({ aqiResult, risk, selectedActions, language = 'en' }) {
     const fallback = buildRuleBasedContent({ aqiResult, risk, selectedActions, language });
     const aiClient = getClient();

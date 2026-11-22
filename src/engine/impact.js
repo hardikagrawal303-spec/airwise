@@ -96,11 +96,8 @@ function resolveMode(mode, paramName) {
  * Estimate daily and monthly CO2e savings from switching daily commute mode.
  * Returns locale keys plus interpolation parameters, confidence, and isEstimate: true.
  *
- * @param {object} input - Commute comparison inputs.
- * @param {string} input.currentMode - Current commute mode identifier.
- * @param {string} input.newMode - Cleaner target commute mode identifier.
- * @param {number} input.kmPerDay - Daily round-trip commute distance in km.
- * @returns {object} Transparent localized CO2e savings estimate with formula and assumptions keys.
+ * @param {{ currentMode: string, newMode: string, kmPerDay: number }} input - Commute comparison inputs.
+ * @returns {import('../types.d.ts').CommuteImpact} Transparent localized CO2e savings estimate with formula and assumptions keys.
  */
 export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
   const current = resolveMode(currentMode, 'currentMode');
@@ -161,8 +158,8 @@ export function estimateCommuteSwitch({ currentMode, newMode, kmPerDay }) {
 /**
  * Pick a practical cleaner commute comparison for the household profile.
  *
- * @param {object} profile - Household profile with commute mode and km/day.
- * @returns {object} Commute CO2e comparison estimate.
+ * @param {import('../types.d.ts').HouseholdProfile} profile - Household profile with commute mode and km/day.
+ * @returns {import('../types.d.ts').CommuteImpact} Commute CO2e comparison estimate.
  */
 export function buildCommuteComparison(profile) {
   const current = profile?.commute || 'car';
@@ -183,7 +180,7 @@ export function buildCommuteComparison(profile) {
  * Never invents disease-prevention numbers; uses localized "can help reduce" copy only.
  *
  * @param {string} actionId - Curated action identifier.
- * @returns {{ exposureEffectKey: string, summaryKey: string, formulaKey: string, assumptionKeys: string[], confidence: string, isEstimate: boolean }} Qualitative impact locale keys.
+ * @returns {import('../types.d.ts').ExposureImpact} Qualitative impact locale keys.
  */
 export function estimateExposureReduction(actionId) {
   const actionCategory = ACTIONS_BY_ID[actionId]?.category;

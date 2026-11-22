@@ -77,7 +77,7 @@ function isNonProdLoopbackHttpOrigin(originUrl) {
  * Allows missing Origin, configured ALLOWED_ORIGINS, matching Host, first
  * X-Forwarded-Host when trustProxy is active, and non-prod loopback origins.
  *
- * @param {string[]|string} [allowedOrigins=[]] - Extra permitted Origin entries.
+ * @param {readonly string[]|string} [allowedOrigins=[]] - Extra permitted Origin entries.
  * @param {object} [options] - Runtime proxy and environment flags.
  * @param {boolean|number|string} [options.trustProxy=false] - Express trust proxy setting.
  * @param {string} [options.nodeEnv] - Active NODE_ENV value.

@@ -1,4 +1,5 @@
 const loadedLocales = new Map();
+/** @type {'en'|'hi'} */
 let currentLang = 'en';
 
 /**
@@ -67,7 +68,7 @@ export function t(key, vars = {}, lang = currentLang) {
  */
 export function applyTranslations(root = document, lang = currentLang) {
   currentLang = lang === 'hi' ? 'hi' : 'en';
-  if (root.documentElement) {
+  if ('documentElement' in root && root.documentElement) {
     root.documentElement.lang = currentLang;
   }
   if ('title' in root) {

@@ -1,7 +1,12 @@
 /* Safe DOM rendering module — uses createElement and textContent only (never innerHTML). */
-import { bindDisclosure } from './a11y.js';
+import { bindDisclosure, byId } from './a11y.js';
 import { bandFromCategory } from './haze.js';
 import { createDaypartIcon, el, renderAqiScale } from './renderIcons.js';
+
+const SPECIAL_ACTION_IDS = Object.freeze({
+  urgentMedicalCare: 'seek_medical_care_if_symptoms',
+  timelineVentilation: Object.freeze(['timed_window_ventilation', 'close_windows_evening_night']),
+});
 
 function formatObservedTime(isoString, lang) {
   if (!isoString) return '';
@@ -19,7 +24,7 @@ function formatObservedTime(isoString, lang) {
 
 function createActionListItem(doc, item, t, idPrefix) {
   const li = el(doc, 'li', 'action-item');
-  const urgent = item.id === 'seek_medical_care_if_symptoms';
+  const urgent = item.id === SPECIAL_ACTION_IDS.urgentMedicalCare;
   li.appendChild(
     el(doc, 'p', urgent ? 'action-text action-text-urgent' : 'action-text', item.text)
   );
@@ -40,9 +45,7 @@ function createActionListItem(doc, item, t, idPrefix) {
     panel.id = whyId;
     panel.hidden = true;
     panel.appendChild(el(doc, 'p', '', item.whyItMatters));
-    const impactSummary = item.impact?.summaryKey
-      ? t(item.impact.summaryKey)
-      : item.impact?.summary;
+    const impactSummary = item.impact?.summaryKey ? t(item.impact.summaryKey) : '';
     if (impactSummary && impactSummary !== item.whyItMatters) {
       panel.appendChild(el(doc, 'p', 'why-effect', impactSummary));
     }
@@ -81,8 +84,8 @@ function buildCommuteTable(doc, impact, t) {
     tbody.appendChild(tr);
   };
 
-  const currentLabel = impact.currentLabelKey ? t(impact.currentLabelKey) : impact.currentLabel;
-  const newLabel = impact.newLabelKey ? t(impact.newLabelKey) : impact.newLabel;
+  const currentLabel = t(impact.currentLabelKey);
+  const newLabel = t(impact.newLabelKey);
   const km = t('impact.unit.km', { value: impact.kmPerDay });
   const saved = impact.dailyKgCO2Saved > 0;
   addRow(
@@ -118,17 +121,13 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
   const panel = el(doc, 'div', 'disclosure-panel');
   panel.id = 'impact-formula-panel';
   panel.hidden = true;
-  const formulaText = commuteImpact.formulaKey
-    ? t(commuteImpact.formulaKey, commuteImpact.formulaParams || {})
-    : commuteImpact.formula;
+  const formulaText = t(commuteImpact.formulaKey, commuteImpact.formulaParams || {});
   panel.appendChild(el(doc, 'p', 'formula-code', formulaText));
 
   const ul = el(doc, 'ul', 'formula-list');
-  const assumptions = Array.isArray(commuteImpact.assumptionKeys)
-    ? commuteImpact.assumptionKeys.map((entry) =>
-        typeof entry === 'string' ? t(entry) : t(entry.key, entry.params || {})
-      )
-    : commuteImpact.assumptions || [];
+  const assumptions = (commuteImpact.assumptionKeys || []).map((entry) =>
+    typeof entry === 'string' ? t(entry) : t(entry.key, entry.params || {})
+  );
   for (const a of assumptions) ul.appendChild(el(doc, 'li', '', a));
   panel.appendChild(ul);
 
@@ -139,10 +138,10 @@ function renderCommuteImpact(doc, container, commuteImpact, t) {
   container.append(toggleBtn, panel);
 }
 
-function renderPlanHeader(doc, byId, { aqi, risk, plan, t, lang }) {
+function renderPlanHeader(doc, getEl, { aqi, risk, plan, t, lang }) {
   const bandSlug = bandFromCategory(aqi.band || aqi.category);
   const place = aqi.placeLabel || t('result.defaultPlace');
-  byId('plan-heading').textContent = plan.headline;
+  getEl('plan-heading').textContent = plan.headline;
 
   const copyLabel = t(plan.copySource === 'ai' ? 'source.ai' : 'source.rules');
   const dataLabel = t(
@@ -150,29 +149,32 @@ function renderPlanHeader(doc, byId, { aqi, risk, plan, t, lang }) {
   );
   const timeStr = formatObservedTime(aqi.observedAt, lang);
   const pm10Part = typeof aqi.pm10 === 'number' ? ` · ${t('aqi.meta.pm10')} ${aqi.pm10} µg/m³` : '';
-  byId('plan-meta-line').textContent =
+  getEl('plan-meta-line').textContent =
     `${copyLabel} · ${dataLabel} · ${t('aqi.meta.updatedAt')} ${timeStr} · ${t('aqi.meta.dominant')}: ${aqi.dominantPollutant}${pm10Part}`;
 
-  byId('plan-opening').textContent = t(`result.opening.${risk?.vulnerabilityLevel || 'standard'}`, {
-    place,
-    pm25: aqi.pm25,
-    band: t(`aqi.band.${bandSlug}`),
-    aqi: aqi.aqi,
-  });
+  getEl('plan-opening').textContent = t(
+    `result.opening.${risk?.vulnerabilityLevel || 'standard'}`,
+    {
+      place,
+      pm25: aqi.pm25,
+      band: t(`aqi.band.${bandSlug}`),
+      aqi: aqi.aqi,
+    }
+  );
 
-  renderAqiScale(doc, byId('aqi-scale-container'), bandSlug, t);
-  byId('plan-summary').textContent = plan.summary;
-  byId('plan-family-tip').textContent = plan.familyTip;
+  renderAqiScale(doc, getEl('aqi-scale-container'), bandSlug, t);
+  getEl('plan-summary').textContent = plan.summary;
+  getEl('plan-family-tip').textContent = plan.familyTip;
 }
 
-function renderTimeline(doc, byId, plan, t) {
-  byId('day-pattern-note').textContent =
+function renderTimeline(doc, getEl, plan, t) {
+  getEl('day-pattern-note').textContent =
     plan.bestHours && !plan.bestHours.isPattern && plan.bestHours.windowLabel
       ? t('section.day.hourlyNote', { window: plan.bestHours.windowLabel })
       : t('section.day.patternNote');
 
   const itemsById = new Map((plan.items || []).map((item) => [item.id, item]));
-  const list = byId('timeline-list');
+  const list = getEl('timeline-list');
   list.textContent = '';
 
   for (const slot of plan.timeline || []) {
@@ -196,8 +198,7 @@ function renderTimeline(doc, byId, plan, t) {
         (item) =>
           item &&
           (item.category === 'daily_routine' ||
-            item.id === 'timed_window_ventilation' ||
-            item.id === 'close_windows_evening_night')
+            SPECIAL_ACTION_IDS.timelineVentilation.includes(item.id))
       );
 
     if (slotActions.length > 0) {
@@ -228,27 +229,27 @@ function renderActionSection(doc, target, items, t, prefix) {
 
 /**
  * Render a plan response using textContent only.
- * @param {object} data
- * @param {object} opts
+ * @param {import('../../src/types.d.ts').PlanResponse} data
+ * @param {{ doc?: Document, t: import('../../src/types.d.ts').TranslateFn, lang?: import('../../src/types.d.ts').LanguageCode }} opts
  * @returns {void}
  */
 export function renderPlanResult(data, { doc = document, t, lang = 'en' }) {
-  const byId = (id) => doc.getElementById(id);
-  const planOutput = byId('plan-output');
+  const getEl = (id) => byId(id, doc);
+  const planOutput = getEl('plan-output');
   if (!planOutput || !data?.aqi || !data?.plan) return;
 
   const { aqi, risk, plan } = data;
-  renderPlanHeader(doc, byId, { aqi, risk, plan, t, lang });
-  renderTimeline(doc, byId, plan, t);
-  renderActionSection(doc, byId('indoor-list'), plan.sections?.indoor_air, t, 'indoor');
+  renderPlanHeader(doc, getEl, { aqi, risk, plan, t, lang });
+  renderTimeline(doc, getEl, plan, t);
+  renderActionSection(doc, getEl('indoor-list'), plan.sections?.indoor_air, t, 'indoor');
   renderActionSection(
     doc,
-    byId('sustainable-list'),
+    getEl('sustainable-list'),
     plan.sections?.sustainable_alternative,
     t,
     'sustain'
   );
-  renderCommuteImpact(doc, byId('commute-impact-wrap'), plan.commuteImpact, t);
-  renderActionSection(doc, byId('community-list'), plan.sections?.community, t, 'comm');
+  renderCommuteImpact(doc, getEl('commute-impact-wrap'), plan.commuteImpact, t);
+  renderActionSection(doc, getEl('community-list'), plan.sections?.community, t, 'comm');
   planOutput.hidden = false;
 }

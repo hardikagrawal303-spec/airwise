@@ -1,3 +1,23 @@
+export const UI_TIMINGS = Object.freeze({
+  announceDelayMs: 40,
+  citySearchDebounceMs: 300,
+  hazeSettleMs: 1300,
+  geoTimeoutMs: 8000,
+  geoMaxAgeMs: 300000,
+  defaultRequestTimeoutMs: 15000,
+  planRequestTimeoutMs: 20000,
+});
+
+/**
+ * Look up a DOM element by ID on the given document.
+ * @param {string} id
+ * @param {Document} [doc=document]
+ * @returns {HTMLElement|null}
+ */
+export function byId(id, doc = document) {
+  return doc.getElementById(id);
+}
+
 const announceTimers = new WeakMap();
 
 /**
@@ -17,7 +37,7 @@ export function announce(liveEl, message) {
   const timerId = setTimeout(() => {
     announceTimers.delete(liveEl);
     liveEl.textContent = String(message || '');
-  }, 40);
+  }, UI_TIMINGS.announceDelayMs);
   announceTimers.set(liveEl, timerId);
 }
 
@@ -33,7 +53,7 @@ export function moveFocus(element) {
 
 /**
  * Clear form error summary and invalid markers, restoring original aria-describedby tokens.
- * @param {HTMLFormElement|null} formEl
+ * @param {HTMLElement|null} formEl
  * @param {HTMLElement|null} summaryEl
  * @param {HTMLElement|null} listEl
  * @returns {void}
@@ -46,6 +66,7 @@ export function clearFormErrors(formEl, summaryEl, listEl) {
     listEl.textContent = '';
   }
   if (!formEl) return;
+  /** @type {NodeListOf<HTMLElement>} */
   const invalidEls = formEl.querySelectorAll('[aria-invalid="true"]');
   for (const el of invalidEls) {
     el.removeAttribute('aria-invalid');
@@ -66,7 +87,7 @@ export function clearFormErrors(formEl, summaryEl, listEl) {
 /**
  * Show validation errors, assign unique error IDs, and preserve existing aria-describedby tokens.
  * @param {Array<{fieldId: string, message: string}>} errors
- * @param {object} opts
+ * @param {{ summaryEl: HTMLElement|null, listEl: HTMLElement|null, doc?: Document }} opts
  * @returns {void}
  */
 export function showFormErrors(errors, { summaryEl, listEl, doc = document }) {
@@ -110,10 +131,10 @@ export function showFormErrors(errors, { summaryEl, listEl, doc = document }) {
 
 /**
  * Wire an accessible disclosure button and panel pair.
- * @param {HTMLButtonElement|null} button
+ * @param {HTMLElement|null} button
  * @param {HTMLElement|null} panel
- * @param {object} [opts]
- * @returns {{setOpen: Function, isOpen: Function}}
+ * @param {{ getClosedLabel?: () => string, getOpenLabel?: () => string, onToggle?: (open: boolean) => void }} [opts]
+ * @returns {{ setOpen: (open: boolean) => void, isOpen: () => boolean }}
  */
 export function bindDisclosure(button, panel, { getClosedLabel, getOpenLabel, onToggle } = {}) {
   const setOpen = (open) => {

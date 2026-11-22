@@ -30,8 +30,12 @@ function svgEl(doc, tag, attrs = {}) {
 
 /**
  * Create a DOM element with optional class and text.
- * @param {Document} doc @param {string} tag @param {string} [cls] @param {string} [text]
- * @returns {HTMLElement}
+ * @template {keyof HTMLElementTagNameMap} K
+ * @param {Document} doc
+ * @param {K} tag
+ * @param {string} [cls]
+ * @param {string} [text]
+ * @returns {HTMLElementTagNameMap[K]}
  */
 export function el(doc, tag, cls, text) {
   const node = doc.createElement(tag);
@@ -69,7 +73,8 @@ function createBandShapeIcon(doc, shape) {
 
 /**
  * Build an inline SVG icon for a timeline daypart.
- * @param {Document} doc @param {string} daypart
+ * @param {Document} doc
+ * @param {string} daypart
  * @returns {SVGElement}
  */
 export function createDaypartIcon(doc, daypart) {
@@ -105,7 +110,10 @@ export function createDaypartIcon(doc, daypart) {
 
 /**
  * Render the 6-band CPCB AQI visual scale with active marker.
- * @param {Document} doc @param {HTMLElement} container @param {string} activeBand @param {Function} t
+ * @param {Document} doc
+ * @param {HTMLElement} container
+ * @param {string} activeBand
+ * @param {import('../../src/types.d.ts').TranslateFn} t
  * @returns {void}
  */
 export function renderAqiScale(doc, container, activeBand, t) {

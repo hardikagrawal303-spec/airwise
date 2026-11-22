@@ -1,3 +1,5 @@
+import { UI_TIMINGS } from './a11y.js';
+
 export const VALID_BANDS = Object.freeze([
   'good',
   'satisfactory',
@@ -15,6 +17,8 @@ const CATEGORY_TO_BAND = Object.freeze({
   'Very Poor': 'very-poor',
   Severe: 'severe',
 });
+
+const settleTimers = new WeakMap();
 
 /**
  * Normalize a CPCB category or slug into a data-band token.
@@ -36,7 +40,7 @@ export function bandFromCategory(category) {
 }
 
 /**
- * Set hero skyline haze via data-band attribute only.
+ * Set hero skyline haze via data-band attribute only, cancelling any overlapping settle timer.
  * @param {HTMLElement|null} heroEl
  * @param {string} categoryOrBand
  * @param {{animate?: boolean}} [opts]
@@ -46,12 +50,20 @@ export function setHeroBand(heroEl, categoryOrBand, { animate = false } = {}) {
   if (!heroEl) return 'moderate';
   const band = bandFromCategory(categoryOrBand);
 
+  const pending = settleTimers.get(heroEl);
+  if (pending !== undefined) {
+    clearTimeout(pending);
+    settleTimers.delete(heroEl);
+  }
+
   if (animate) {
     heroEl.classList.add('haze-settling');
     heroEl.setAttribute('data-band', band);
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
+      settleTimers.delete(heroEl);
       heroEl.classList.remove('haze-settling');
-    }, 1300);
+    }, UI_TIMINGS.hazeSettleMs);
+    settleTimers.set(heroEl, timerId);
   } else {
     heroEl.classList.remove('haze-settling');
     heroEl.setAttribute('data-band', band);

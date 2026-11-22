@@ -3,6 +3,9 @@
  * Zero external dependencies.
  */
 
+/**
+ * In-memory bounded TTL + LRU cache.
+ */
 export class TtlCache {
   constructor({ ttlMs = 10 * 60 * 1000, maxEntries = 200 } = {}) {
     if (!Number.isFinite(ttlMs) || ttlMs <= 0) {

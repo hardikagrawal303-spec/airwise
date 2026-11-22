@@ -1,3 +1,5 @@
+import { UI_TIMINGS } from './a11y.js';
+
 const KNOWN_ERROR_KEYS = Object.freeze({
   AIR_UPSTREAM_FAILED: 'error.AIR_UPSTREAM_FAILED',
   GEOCODE_FAILED: 'error.GEOCODE_FAILED',
@@ -15,7 +17,7 @@ const KNOWN_ERROR_KEYS = Object.freeze({
 
 /**
  * Map API error codes or HTTP statuses to localized keys.
- * @param {object} [err]
+ * @param {{ code?: string|null, status?: number, isOffline?: boolean, isTimeout?: boolean }} [err]
  * @returns {string}
  */
 export function mapErrorToLocaleKey({ code, status, isOffline = false, isTimeout = false } = {}) {
@@ -33,6 +35,9 @@ export function mapErrorToLocaleKey({ code, status, isOffline = false, isTimeout
   return KNOWN_ERROR_KEYS.INTERNAL_ERROR;
 }
 
+/**
+ * Structured client-side API error carrying a localized error key and HTTP metadata.
+ */
 export class ClientApiError extends Error {
   constructor(localeKey, { code = null, status = 0 } = {}) {
     super(localeKey);
@@ -50,7 +55,11 @@ export class ClientApiError extends Error {
  * @param {{ timeoutMs?: number, fetchImpl?: typeof fetch }} [config={}]
  * @returns {Promise<any>}
  */
-export async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImpl = fetch } = {}) {
+export async function fetchJson(
+  url,
+  options = {},
+  { timeoutMs = UI_TIMINGS.defaultRequestTimeoutMs, fetchImpl = fetch } = {}
+) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     throw new ClientApiError(mapErrorToLocaleKey({ isOffline: true }), {
       code: 'NETWORK_OFFLINE',
@@ -102,7 +111,7 @@ export async function fetchJson(url, options = {}, { timeoutMs = 15000, fetchImp
  * Search cities via /api/geocode.
  * @param {string} query
  * @param {typeof fetch} [fetchImpl=fetch]
- * @returns {Promise<Array<object>>}
+ * @returns {Promise<import('../../src/types.d.ts').GeocodeResult[]>}
  */
 export async function geocodeCities(query, fetchImpl = fetch) {
   const encoded = encodeURIComponent(String(query || '').trim());
@@ -112,9 +121,9 @@ export async function geocodeCities(query, fetchImpl = fetch) {
 
 /**
  * Request a household air-quality plan from /api/plan.
- * @param {object} payload
+ * @param {import('../../src/types.d.ts').PlanRequestInput} payload
  * @param {typeof fetch} [fetchImpl=fetch]
- * @returns {Promise<object>}
+ * @returns {Promise<import('../../src/types.d.ts').PlanResponse>}
  */
 export async function requestPlan(payload, fetchImpl = fetch) {
   return fetchJson(
@@ -124,6 +133,6 @@ export async function requestPlan(payload, fetchImpl = fetch) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     },
-    { timeoutMs: 20000, fetchImpl }
+    { timeoutMs: UI_TIMINGS.planRequestTimeoutMs, fetchImpl }
   );
 }

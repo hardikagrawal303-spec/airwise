@@ -1,29 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { jest } from '@jest/globals';
 import axe from 'axe-core';
-import { JSDOM } from 'jsdom';
 import { announce, clearFormErrors, showFormErrors } from '../../public/js/a11y.js';
 import { setHeroBand, VALID_BANDS } from '../../public/js/haze.js';
-import { applyTranslations, registerLocaleData, t } from '../../public/js/i18n.js';
+import { applyTranslations, t } from '../../public/js/i18n.js';
 import { renderPlanResult } from '../../public/js/render.js';
 import { createPlanBuilder } from '../../src/services/planBuilder.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, '../..');
-const htmlSource = fs.readFileSync(path.join(rootDir, 'public/index.html'), 'utf8');
-const enLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8'));
-const hiLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8'));
-
-function createAppDom() {
-  const dom = new JSDOM(htmlSource, { url: 'http://localhost:3000/' });
-  dom.window.HTMLCanvasElement.prototype.getContext = () => null;
-  registerLocaleData('en', enLocale);
-  registerLocaleData('hi', hiLocale);
-  applyTranslations(dom.window.document, 'en');
-  return dom;
-}
+import { createAppDom, enLocale, hiLocale } from '../helpers/domFixtures.js';
 
 async function runAxe(doc) {
   // color-contrast requires canvas layout engine unavailable in jsdom; checked in browser verification
@@ -91,6 +73,87 @@ describe('Accessibility (WCAG 2.1 AA with axe-core + jsdom)', () => {
     expect(doc.getElementById('plan-output').hidden).toBe(false);
     expect(doc.getElementById('hero').getAttribute('data-band')).toBe('severe');
     expect(doc.getElementById('hero').getAttribute('style')).toBeNull();
+    dom.window.close();
+  });
+
+  test('Hindi state (lang="hi") with rendered plan has zero axe-core violations', async () => {
+    const dom = createAppDom();
+    const doc = dom.window.document;
+    applyTranslations(doc, 'hi');
+
+    const builder = createPlanBuilder();
+    const data = await builder.buildPlan({
+      manual: { pm25: 220, pm10: 310, label: 'मथुरा' },
+      profile: {
+        members: { adults: 2, children: 1, elderly: 0 },
+        hasRespiratoryOrHeartCondition: false,
+        commute: 'car',
+        commuteKmPerDay: 14,
+        cookingFuel: 'lpg',
+        hasPurifier: false,
+        budget: 'medium',
+        homeType: 'apartment',
+        language: 'hi',
+      },
+    });
+
+    setHeroBand(doc.getElementById('hero'), data.aqi.band);
+    renderPlanResult(data, { doc, t, lang: 'hi' });
+
+    expect(doc.documentElement.lang).toBe('hi');
+    const violations = await runAxe(doc);
+    expect(violations).toEqual([]);
+    dom.window.close();
+  });
+
+  test('Dark theme state (data-theme="dark") with rendered plan has zero axe-core violations', async () => {
+    const dom = createAppDom();
+    const doc = dom.window.document;
+    doc.documentElement.setAttribute('data-theme', 'dark');
+    doc.getElementById('theme-toggle')?.setAttribute('aria-pressed', 'true');
+
+    const builder = createPlanBuilder();
+    const data = await builder.buildPlan({
+      manual: { pm25: 150, pm10: 210, label: 'Noida' },
+      profile: {
+        members: { adults: 2, children: 0, elderly: 1 },
+        hasRespiratoryOrHeartCondition: false,
+        commute: 'two_wheeler',
+        commuteKmPerDay: 12,
+        cookingFuel: 'lpg',
+        hasPurifier: true,
+        budget: 'high',
+        homeType: 'apartment',
+        language: 'en',
+      },
+    });
+
+    setHeroBand(doc.getElementById('hero'), data.aqi.band);
+    renderPlanResult(data, { doc, t, lang: 'en' });
+
+    expect(doc.documentElement.getAttribute('data-theme')).toBe('dark');
+    const violations = await runAxe(doc);
+    expect(violations).toEqual([]);
+    dom.window.close();
+  });
+
+  test('validation error-summary state has zero axe-core violations', async () => {
+    const dom = createAppDom();
+    const doc = dom.window.document;
+    const summaryEl = doc.getElementById('error-summary');
+    const listEl = doc.getElementById('error-summary-list');
+
+    showFormErrors(
+      [
+        { fieldId: 'city-input', message: enLocale['form.error.locationRequired'] },
+        { fieldId: 'adults-input', message: enLocale['form.error.adultsInvalid'] },
+      ],
+      { summaryEl, listEl, doc }
+    );
+
+    expect(summaryEl.hidden).toBe(false);
+    const violations = await runAxe(doc);
+    expect(violations).toEqual([]);
     dom.window.close();
   });
 

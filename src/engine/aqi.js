@@ -20,7 +20,7 @@ function assertValidConcentration(value, label) {
  * Capped at 500 and rounded to the nearest integer.
  *
  * @param {number} concentration - Pollutant concentration in ug/m3.
- * @param {Array<object>} breakpoints - Ordered CPCB breakpoint segments.
+ * @param {readonly import('../types.d.ts').AqiBreakpoint[]} breakpoints - Ordered CPCB breakpoint segments.
  * @param {string} [label='concentration'] - Label for validation error messages.
  * @returns {number} Integer CPCB sub-index in [0, 500].
  */
@@ -48,7 +48,7 @@ export function calculateSubIndex(concentration, breakpoints, label = 'concentra
  * Map a numeric CPCB AQI value to its official category metadata.
  *
  * @param {number} aqi - Computed CPCB AQI score.
- * @returns {{ name: string, slug: string, min: number, max: number }} Matching CPCB category band.
+ * @returns {import('../types.d.ts').AqiCategoryInfo} Matching CPCB category band.
  */
 export function getAqiCategory(aqi) {
   assertValidConcentration(aqi, 'aqi');
@@ -65,10 +65,8 @@ export function getAqiCategory(aqi) {
  * Calculate overall Indian CPCB AQI from PM2.5 and optional PM10 concentrations (ug/m3).
  * Overall AQI = max(subIndex(PM2.5), subIndex(PM10)), capped at 500.
  *
- * @param {object} [readings] - Pollutant concentrations.
- * @param {number} readings.pm25 - PM2.5 concentration in ug/m3.
- * @param {number|null} [readings.pm10=null] - Optional PM10 concentration in ug/m3.
- * @returns {{ aqi: number, category: string, band: string, dominantPollutant: string, subIndices: object }} Computed CPCB AQI breakdown.
+ * @param {{ pm25?: number, pm10?: number|null }} [readings] - Pollutant concentrations.
+ * @returns {import('../types.d.ts').AqiResult} Computed CPCB AQI breakdown.
  */
 export function calculateAqi({ pm25, pm10 = null } = {}) {
   assertValidConcentration(pm25, 'pm25');
@@ -82,6 +80,7 @@ export function calculateAqi({ pm25, pm10 = null } = {}) {
   }
 
   let aqi = pm25SubIndex;
+  /** @type {'PM2.5'|'PM10'} */
   let dominantPollutant = 'PM2.5';
 
   if (pm10SubIndex !== null && pm10SubIndex > pm25SubIndex) {

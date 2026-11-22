@@ -54,6 +54,7 @@ function emit(level, message, meta) {
   }
 }
 
+/** @type {Readonly<{ info: (msg: string, meta?: Record<string, unknown>) => void, warn: (msg: string, meta?: Record<string, unknown>) => void, error: (msg: string, meta?: Record<string, unknown>) => void }>} */
 export const logger = Object.freeze({
   info: (msg, meta) => emit('info', msg, meta),
   warn: (msg, meta) => emit('warn', msg, meta),

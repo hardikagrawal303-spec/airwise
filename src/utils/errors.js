@@ -15,6 +15,9 @@ export const ERROR_CODES = Object.freeze({
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 });
 
+/**
+ * Structured HTTP application error carrying a safe client message and machine-readable code.
+ */
 export class AppError extends Error {
   constructor(code, safeMessage, statusCode = 500, details = undefined) {
     super(safeMessage);

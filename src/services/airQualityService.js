@@ -43,10 +43,8 @@ function delay(ms) {
 /**
  * Normalize a user-provided manual PM2.5/PM10 reading into the standard air reading shape.
  *
- * @param {object} input - Manual pollutant readings.
- * @param {number} input.pm25 - PM2.5 concentration in ug/m3.
- * @param {number|null} [input.pm10=null] - Optional PM10 concentration in ug/m3.
- * @returns {{ pm25: number, pm10: number|null, observedAt: string, hourly: null, dataSource: 'manual', cached: false }} Normalized air reading.
+ * @param {{ pm25: number, pm10?: number|null }} input - Manual pollutant readings.
+ * @returns {import('../types.d.ts').AirReading} Normalized air reading.
  */
 export function createManualAirReading({ pm25, pm10 = null }) {
   return {
@@ -83,6 +81,7 @@ async function fetchJsonWithTimeoutAndRetry(
         continue;
       }
       if (!response.ok) {
+        /** @type {Error & { nonRetryable?: boolean }} */
         const httpErr = new Error(`Upstream HTTP ${response.status}`);
         httpErr.nonRetryable = !isRetryableStatus(response.status);
         throw httpErr;
@@ -228,8 +227,8 @@ async function fetchAirQualityReading(lat, lon, { aqiCache, fetchOpts }) {
 /**
  * Create a cached Open-Meteo geocoding and air-quality client.
  *
- * @param {object} [options] - Optional overrides for fetchImpl, timeouts, retries, and cache sizing.
- * @returns {{ geocode: Function, getAirQuality: Function }} Air quality service methods.
+ * @param {{ fetchImpl?: typeof fetch, timeoutMs?: number, cacheTtlMs?: number, retryDelayMs?: number, maxAttempts?: number, maxCacheEntries?: number }} [options] - Optional overrides for fetchImpl, timeouts, retries, and cache sizing.
+ * @returns {import('../types.d.ts').AirQualityService} Air quality service methods.
  */
 export function createAirQualityService({
   fetchImpl = globalThis.fetch,

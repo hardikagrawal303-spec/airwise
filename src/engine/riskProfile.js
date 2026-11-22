@@ -24,9 +24,9 @@ const HIGH_INDOOR_SMOKE_FUELS = Object.freeze(new Set(['wood_or_biomass', 'keros
  * Evaluate household vulnerability level based on household profile and current AQI.
  * Pure function: does not store, mutate, or log any profile fields.
  *
- * @param {object} profile - Validated household profile
- * @param {object} aqiResult - Result from calculateAqi ({ aqi, category })
- * @returns {{ vulnerabilityLevel: 'standard'|'elevated'|'high', reasons: string[], isSensitiveGroup: boolean }}
+ * @param {import('../types.d.ts').HouseholdProfile} profile - Validated household profile.
+ * @param {Pick<import('../types.d.ts').AqiResult, 'aqi'|'category'>} aqiResult - Result from calculateAqi.
+ * @returns {import('../types.d.ts').RiskProfile} Household vulnerability level and reasons.
  */
 export function evaluateRiskProfile(profile, aqiResult) {
   if (!profile || typeof profile !== 'object' || !profile.members) {
@@ -68,6 +68,7 @@ export function evaluateRiskProfile(profile, aqiResult) {
     reasons.push('risk.reason.open_commute');
   }
 
+  /** @type {import('../types.d.ts').VulnerabilityLevel} */
   let vulnerabilityLevel = 'standard';
 
   if (

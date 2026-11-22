@@ -1,4 +1,4 @@
-import { announce, bindDisclosure, moveFocus } from './a11y.js';
+import { announce, bindDisclosure, byId, moveFocus, UI_TIMINGS } from './a11y.js';
 import { ClientApiError, mapErrorToLocaleKey, requestPlan } from './api.js';
 import { initCityCombobox } from './combobox.js';
 import { bindFormSubmission } from './form.js';
@@ -9,13 +9,8 @@ import { renderPlanResult } from './render.js';
 
 const STORAGE_LANG_KEY = 'airwise_lang';
 const STORAGE_THEME_KEY = 'airwise_theme';
-const UI_TIMINGS = Object.freeze({
-  citySearchDebounceMs: 300,
-  geoTimeoutMs: 8000,
-  geoMaxAgeMs: 300000,
-});
-const byId = (id) => document.getElementById(id);
 
+/** @type {import('../../src/types.d.ts').FrontendAppState} */
 const state = {
   selectedLocation: null,
   useManual: false,
@@ -73,7 +68,7 @@ function setLoadingUi(loading) {
   if (resultsRegion) {
     resultsRegion.setAttribute('aria-busy', String(Boolean(loading)));
   }
-  const submitBtn = byId('submit-btn');
+  const submitBtn = /** @type {HTMLButtonElement|null} */ (byId('submit-btn'));
   if (submitBtn) {
     submitBtn.disabled = loading;
     submitBtn.textContent = t(loading ? 'form.submitting' : 'form.submit');
@@ -163,7 +158,11 @@ function initCommunityActions() {
   });
 }
 
-async function bootstrap() {
+/**
+ * Initialise the AirWise browser application on the active DOM.
+ * @returns {Promise<void>}
+ */
+export async function initApp() {
   const savedLang = localStorage.getItem(STORAGE_LANG_KEY) === 'hi' ? 'hi' : 'en';
   await loadLocale('en');
   if (savedLang === 'hi') await loadLocale('hi');
@@ -175,15 +174,19 @@ async function bootstrap() {
     langBtn.addEventListener('click', handleLanguageToggle);
   }
 
+  const onSelectLocation = (loc) => {
+    state.selectedLocation = loc;
+  };
+
   initTheme();
   const { selectCity } = initCityCombobox({
-    state,
+    onSelectLocation,
     t,
     onError: showApiError,
     debounceMs: UI_TIMINGS.citySearchDebounceMs,
   });
   initGeolocation({
-    state,
+    onSelectLocation,
     t,
     setManualMode,
     onError: showApiError,
@@ -215,4 +218,6 @@ async function bootstrap() {
   });
 }
 
-bootstrap();
+if (typeof document !== 'undefined' && byId('household-form')) {
+  initApp();
+}

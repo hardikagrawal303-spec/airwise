@@ -156,11 +156,8 @@ function compareScored(a, b) {
  * guaranteeing at least 2 actions per category where applicable and always including
  * the medical-care safety action for sensitive groups when AQI is Poor or worse.
  *
- * @param {object} input - Action selection inputs.
- * @param {object} input.aqiResult - Computed CPCB AQI result with category.
- * @param {object} input.profile - Validated household profile.
- * @param {object} input.risk - Computed household risk profile.
- * @returns {Array<object>} Priority-sorted actions capped at MAX_SELECTED_ACTIONS.
+ * @param {{ aqiResult: import('../types.d.ts').AqiResult, profile: import('../types.d.ts').HouseholdProfile, risk: import('../types.d.ts').RiskProfile }} input - Action selection inputs.
+ * @returns {import('../types.d.ts').ActionItem[]} Priority-sorted actions capped at MAX_SELECTED_ACTIONS.
  */
 export function selectActions({ aqiResult, profile, risk }) {
   if (!aqiResult || !(aqiResult.category in CATEGORY_RANK)) {

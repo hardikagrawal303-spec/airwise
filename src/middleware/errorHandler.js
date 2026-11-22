@@ -17,7 +17,7 @@ export function notFoundHandler(_req, _res, next) {
 /**
  * Centralized Express error handler returning structured JSON with a per-error requestId.
  *
- * @param {Error} err - Thrown or forwarded error.
+ * @param {Error & { type?: string, status?: number }} err - Thrown or forwarded error.
  * @param {import('express').Request} req - Express request.
  * @param {import('express').Response} res - Express response.
  * @param {import('express').NextFunction} _next - Express next callback (required 4-arg signature).

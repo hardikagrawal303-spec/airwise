@@ -21,10 +21,7 @@ const PUBLIC_DIR = path.resolve(__dirname, '../public');
 /**
  * Express application factory (exported for integration tests).
  *
- * @param {object} [deps] - Optional dependency overrides for testing.
- * @param {object} [deps.config] - Validated application configuration.
- * @param {object} [deps.airQualityService] - Air quality and geocoding service.
- * @param {object} [deps.geminiService] - Optional Gemini personalization service.
+ * @param {{ config?: import('./types.d.ts').AppConfig, airQualityService?: import('./types.d.ts').AirQualityService, geminiService?: import('./types.d.ts').GeminiService }} [deps] - Optional dependency overrides for testing.
  * @returns {import('express').Express} Configured Express application.
  */
 export function createApp({

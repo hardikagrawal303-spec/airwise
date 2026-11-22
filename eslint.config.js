@@ -1,8 +1,35 @@
+function findJsdoc(sourceCode, node) {
+  const comments = sourceCode.getCommentsBefore(node);
+  return comments.findLast((c) => c.type === 'Block' && c.value.startsWith('*')) || null;
+}
+
+function checkFunctionJsdoc(context, jsdoc, reportNode, name, params) {
+  if (!jsdoc) {
+    context.report({
+      node: reportNode,
+      message: `Exported function "${name}" must have a JSDoc comment.`,
+    });
+    return;
+  }
+  if (params.length > 0 && !/@param\b/.test(jsdoc.value)) {
+    context.report({
+      node: reportNode,
+      message: `Exported function "${name}" JSDoc must document parameters with @param.`,
+    });
+  }
+  if (!/@returns?\b/.test(jsdoc.value)) {
+    context.report({
+      node: reportNode,
+      message: `Exported function "${name}" JSDoc must include @returns.`,
+    });
+  }
+}
+
 const requireExportJsdocRule = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Require JSDoc with @param and @returns tags on exported functions',
+      description: 'Require JSDoc on exported functions, classes, and arrow/function expressions',
     },
     schema: [],
   },
@@ -11,28 +38,39 @@ const requireExportJsdocRule = {
     return {
       ExportNamedDeclaration(node) {
         const decl = node.declaration;
-        if (!decl || decl.type !== 'FunctionDeclaration') return;
-        const comments = sourceCode.getCommentsBefore(node);
-        const jsdoc = comments.findLast((c) => c.type === 'Block' && c.value.startsWith('*'));
-        const name = decl.id?.name || 'anonymous';
-        if (!jsdoc) {
-          context.report({
-            node: decl.id || decl,
-            message: `Exported function "${name}" must have a JSDoc comment.`,
-          });
+        if (!decl) return;
+
+        if (decl.type === 'FunctionDeclaration') {
+          const jsdoc = findJsdoc(sourceCode, node);
+          const name = decl.id?.name || 'anonymous';
+          checkFunctionJsdoc(context, jsdoc, decl.id || decl, name, decl.params);
           return;
         }
-        if (decl.params.length > 0 && !/@param\b/.test(jsdoc.value)) {
-          context.report({
-            node: decl.id || decl,
-            message: `Exported function "${name}" JSDoc must document parameters with @param.`,
-          });
+
+        if (decl.type === 'ClassDeclaration') {
+          const jsdoc = findJsdoc(sourceCode, node);
+          const name = decl.id?.name || 'anonymous';
+          if (!jsdoc) {
+            context.report({
+              node: decl.id || decl,
+              message: `Exported class "${name}" must have a JSDoc comment.`,
+            });
+          }
+          return;
         }
-        if (!/@returns?\b/.test(jsdoc.value)) {
-          context.report({
-            node: decl.id || decl,
-            message: `Exported function "${name}" JSDoc must include @returns.`,
-          });
+
+        if (decl.type === 'VariableDeclaration') {
+          const jsdoc = findJsdoc(sourceCode, node);
+          for (const declarator of decl.declarations) {
+            const init = declarator.init;
+            if (
+              init &&
+              (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression')
+            ) {
+              const name = declarator.id?.name || 'anonymous';
+              checkFunctionJsdoc(context, jsdoc, declarator.id || declarator, name, init.params);
+            }
+          }
         }
       },
     };
@@ -71,6 +109,24 @@ export default [
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
+      'no-unreachable': 'error',
+      'no-constant-condition': 'error',
+      'no-dupe-keys': 'error',
+      'no-empty': 'error',
+      'no-useless-catch': 'error',
+      'no-shadow': 'error',
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['src/**/*.js'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
+    files: ['src/utils/logger.js'],
+    rules: {
       'no-console': 'off',
     },
   },

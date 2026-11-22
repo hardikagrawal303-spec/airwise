@@ -7,9 +7,7 @@ import { createManualAirReading } from '../services/airQualityService.js';
 /**
  * Create Express router serving /api/geocode and /api/air endpoints.
  *
- * @param {object} deps - Route dependencies.
- * @param {object} deps.airQualityService - Air quality and geocoding service.
- * @param {import('express').RequestHandler} [deps.geocodeRateLimiter] - Stricter rate limiter for /geocode.
+ * @param {{ airQualityService: import('../types.d.ts').AirQualityService, geocodeRateLimiter?: import('express').RequestHandler }} deps - Route dependencies.
  * @returns {import('express').Router} Configured Express router.
  */
 export function createAirRouter({ airQualityService, geocodeRateLimiter }) {

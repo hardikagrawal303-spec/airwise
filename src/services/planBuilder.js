@@ -41,22 +41,26 @@ function assemblePlanItems(selectedActions, personalized, locale) {
   });
 }
 
+/**
+ * @param {import('../types.d.ts').PlanItem[]} items
+ * @returns {Record<import('../types.d.ts').ActionCategory, import('../types.d.ts').PlanItem[]>}
+ */
 function groupByCategory(items) {
-  return Object.fromEntries(
-    VALID_CATEGORIES.map((category) => [
-      category,
-      items.filter((item) => item.category === category),
-    ])
+  return /** @type {Record<import('../types.d.ts').ActionCategory, import('../types.d.ts').PlanItem[]>} */ (
+    Object.fromEntries(
+      VALID_CATEGORIES.map((category) => [
+        category,
+        items.filter((item) => item.category === category),
+      ])
+    )
   );
 }
 
 /**
  * Orchestrate the full AirWise decision pipeline from air reading to personalized plan.
  *
- * @param {object} [deps] - Optional service overrides for testing.
- * @param {object} [deps.airQualityService] - Air quality lookup service.
- * @param {object} [deps.geminiService] - Personalization service with rule fallback.
- * @returns {{ buildPlan: Function }} Plan builder exposing buildPlan().
+ * @param {{ airQualityService?: import('../types.d.ts').AirQualityService, geminiService?: import('../types.d.ts').GeminiService }} [deps] - Optional service overrides for testing.
+ * @returns {import('../types.d.ts').PlanBuilder} Plan builder exposing buildPlan().
  */
 export function createPlanBuilder({
   airQualityService = defaultAirService,

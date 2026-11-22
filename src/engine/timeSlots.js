@@ -10,6 +10,7 @@ import { CATEGORY_RANK } from '../config/aqiBreakpoints.js';
  * as a general pattern rather than a forecast.
  */
 
+/** @type {readonly Exclude<import('../types.d.ts').Daypart, 'any'>[]} */
 export const DAYPART_ORDER = Object.freeze([
   'early_morning',
   'school_work_run',
@@ -34,6 +35,7 @@ function formatHourRange(startIso, endIso) {
   return `${extractHHMM(startIso)} - ${extractHHMM(endIso)}`;
 }
 
+/** @returns {import('../types.d.ts').BestHoursResult} */
 function buildPatternFallback() {
   return {
     windowSource: 'pattern',
@@ -46,6 +48,7 @@ function buildPatternFallback() {
   };
 }
 
+/** @returns {import('../types.d.ts').BestHoursResult} */
 function findLowestPm25Window(points) {
   // Prefer the cleanest 3-hour contiguous window if at least 3 points exist
   if (points.length >= 3) {
@@ -85,8 +88,8 @@ function findLowestPm25Window(points) {
 /**
  * Find the lowest-PM2.5 hours in the next 24h from Open-Meteo hourly data.
  *
- * @param {{ time: string[], pm2_5: Array<number|null> }|null} hourlyData - Optional Open-Meteo hourly series.
- * @returns {object} Cleanest window metadata or North Indian winter pattern fallback.
+ * @param {import('../types.d.ts').HourlyPm25Series|null} hourlyData - Optional Open-Meteo hourly series.
+ * @returns {import('../types.d.ts').BestHoursResult} Cleanest window metadata or North Indian winter pattern fallback.
  */
 export function findBestHours(hourlyData) {
   if (
@@ -113,11 +116,8 @@ export function findBestHours(hourlyData) {
 /**
  * Build the 5-stop day timeline with guidance text keys and assigned action IDs.
  *
- * @param {object} [input] - Timeline inputs.
- * @param {object} input.aqiResult - Computed CPCB AQI result.
- * @param {Array<object>} [input.actions=[]] - Selected household actions.
- * @param {object|null} [input.hourlyData=null] - Optional Open-Meteo hourly PM2.5 series.
- * @returns {{ timeline: Array<object>, bestHours: object }} Daypart timeline and cleanest-hours window.
+ * @param {{ aqiResult?: import('../types.d.ts').AqiResult, actions?: import('../types.d.ts').ActionItem[], hourlyData?: import('../types.d.ts').HourlyPm25Series|null }} [input] - Timeline inputs.
+ * @returns {{ timeline: import('../types.d.ts').TimelineStop[], bestHours: import('../types.d.ts').BestHoursResult }} Daypart timeline and cleanest-hours window.
  */
 export function buildTimeSlots({ aqiResult, actions = [], hourlyData = null } = {}) {
   if (!aqiResult || !(aqiResult.category in CATEGORY_RANK)) {

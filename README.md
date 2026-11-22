@@ -1,5 +1,9 @@
 # AirWise
 
+[![CI](https://github.com/hardikagrawal303-spec/airwise/actions/workflows/ci.yml/badge.svg)](https://github.com/hardikagrawal303-spec/airwise/actions/workflows/ci.yml)
+
+## 1. Overview
+
 **AirWise** is a bilingual (English and Hindi) urban air-quality assistant built for North Indian families, schools, and Resident Welfare Associations (RWAs) navigating winter smog. Instead of dumping raw pollutant tables, AirWise combines live CPCB AQI readings (or a manual home/station PM2.5 reading) with a household's daily routine to deliver a calm, hour-by-hour, room-by-room plan—powered by a deterministic rule engine and optionally personalized by Google Gemini with silent rule-based fallback.
 
 | Good air (`PM2.5 = 20 µg/m³`, CPCB AQI 33)                      | Severe smog (`PM2.5 = 300 µg/m³`, CPCB AQI 439)                     |
@@ -119,11 +123,23 @@ flowchart LR
       }
     ],
     "commuteImpact": {
-      "currentLabel": "Petrol car",
-      "newLabel": "Metro rail",
+      "currentMode": "car",
+      "newMode": "metro",
+      "currentLabelKey": "impact.mode.car",
+      "newLabelKey": "impact.mode.metro",
       "kmPerDay": 18,
       "dailyKgCO2Saved": 2.52,
-      "monthlyKgCO2Saved": 55.44
+      "monthlyKgCO2Saved": 55.44,
+      "summaryKey": "impact.commute.summarySwitch",
+      "formulaKey": "impact.commute.formula",
+      "assumptionKeys": [
+        { "key": "impact.modeNote.car", "params": { "factor": 0.17 } },
+        { "key": "impact.modeNote.metro", "params": { "factor": 0.03 } },
+        { "key": "impact.commute.assumptionDays", "params": { "days": 22 } },
+        { "key": "impact.commute.assumptionApproximate", "params": {} }
+      ],
+      "confidence": "medium",
+      "isEstimate": true
     },
     "bestHours": {
       "windowSource": "pattern",
@@ -162,7 +178,7 @@ flowchart LR
 - **No XSS Sink**: Frontend DOM rendering (`public/js/*`) uses `document.createElement` and `textContent` exclusively (enforced by automated tests; zero `.innerHTML`). Server strips any HTML tags from AI text.
 - **Input Validation & Body Limits**: All endpoints validate inputs via strict Zod schemas (`.strict()` rejects unknown fields); JSON payload capped at `10kb`; `x-powered-by` disabled.
 - **Origin Protection & Proxy Hygiene**: `originGuard` permits missing `Origin` (same-origin GET/curl), matching `Host` header, the first `X-Forwarded-Host` entry (only when `TRUST_PROXY` is active), configured `ALLOWED_ORIGINS` (comma-separated, trimmed, trailing slashes removed), and in non-production (`NODE_ENV !== "production"`) any `http://localhost` or `http://127.0.0.1` origin on any port. Rejected origins log a single warning containing only `Origin`, `Host`, and `X-Forwarded-Host` and return `403` (`ORIGIN_NOT_ALLOWED`). `TRUST_PROXY` defaults to `1` on Cloud Run / AI Studio preview and `false` locally; it accepts `false`, non-negative integer hop counts, or IPv4/IPv6 CIDR range(s), and rejects `"true"`.
-- **Rate Limiting**: Global limiter (`100 req / 15 min` default) plus stricter `/api/plan` limiter (`33 req / 15 min` default) via `express-rate-limit`, forwarding `429 RATE_LIMITED` errors through the centralized `errorHandler` so responses include `requestId`.
+- **Rate Limiting**: Global limiter (`100 req / 15 min` default), dedicated `/api/geocode` limiter (`50 req / 15 min` default, configurable via `GEOCODE_RATE_LIMIT_MAX`), and stricter `/api/plan` limiter (`33 req / 15 min` default) via `express-rate-limit`, forwarding `429 RATE_LIMITED` errors through the centralized `errorHandler` so responses include `requestId`.
 - **Prompt-Injection & PII Defense**: Gemini receives zero user free-text strings, coordinates, or health flags—only coarse category enums and engine `actionId`s—and system instructions treat all payload fields strictly as untrusted data.
 - **Error Handling & Audit**: Centralized error handler returns structured `{ error: { code, message, requestId } }` with no stack traces; `npm audit --omit=dev` reports **0 vulnerabilities** across runtime dependencies.
 
@@ -170,7 +186,7 @@ flowchart LR
 
 ## 8. Accessibility Measures (WCAG 2.1 AA)
 
-- **Zero axe-core violations**: Automated `axe-core` + `jsdom` checks pass with 0 violations on both the initial landing state and rendered plan results.
+- **Zero axe-core violations**: Automated `axe-core` + `jsdom` checks pass with 0 violations across the initial landing state, rendered plan results, Hindi (`lang="hi"`), Dark ("Night Smog") theme, and validation error-summary states.
 - **Semantic Landmarks & Keyboard Flow**: Skip-to-main link, single `<h1>` with proper heading hierarchy, visible `3px` `:focus-visible` outlines, full keyboard operation (city combobox ArrowUp/Down/Enter/Escape, expandable _"Show why"_ and _"How we worked this out"_ panels with `aria-expanded` & `aria-controls`).
 - **Accessible Errors & Live Announcements**: Validation renders a focus-managed error summary linking directly to invalid fields (`aria-invalid="true"`), and a polite `aria-live="polite"` region announces loading, ready, error, and language-switch states.
 - **Never Colour Alone**: Every CPCB AQI band pairs colour with a distinct geometric shape icon (circle, diamond, triangle, hexagon, octagon, square-cross) and explicit band text.
@@ -190,12 +206,12 @@ Full rationale is documented in [`docs/design.md`](docs/design.md). Key choices:
 
 ## 10. Efficiency Decisions
 
-- **Minimal Dependency Footprint**: Only **6 runtime dependencies** (`express`, `helmet`, `express-rate-limit`, `zod`, `@google/genai`, `dotenv`) — zero frontend frameworks or bundlers.
+- **Minimal Dependency Footprint**: Only **6 runtime dependencies** (`express`, `helmet`, `express-rate-limit`, `zod`, `@google/genai`, `dotenv`) — zero frontend frameworks or bundlers (`typescript`, `@types/node`, and `@types/express` are dev-only dependencies used strictly for `tsc --noEmit` JSDoc type checking and are never bundled or loaded at runtime).
 - **Tiny Client Payload** (measured and enforced by automated tests):
-  - CSS (`public/css/styles.css`): **26.8 KB** (budget < 30 KB)
-  - JavaScript (`public/js/*.js` total): **39.8 KB** (budget < 60 KB)
-  - Self-hosted subsetted woff2 fonts (Latin + Devanagari): **127.1 KB** (budget < 150 KB)
-  - Inline skyline SVG: **5.8 KB** (budget < 12 KB)
+  - CSS (`public/css/styles.css`): **28.0 KB** (`28,711 B`, budget < 30 KB)
+  - JavaScript (`public/js/*.js` total, 10 files): **46.7 KB** (`47,823 B`, budget < 60 KB)
+  - Self-hosted subsetted woff2 fonts (Latin + Devanagari, 4 files): **127.1 KB** (`130,148 B`, budget < 150 KB)
+  - Inline skyline SVG: **5.8 KB** (`5,912 B`, budget < 12 KB)
 - **Bounded Caching**: In-memory LRU+TTL cache (`10 min` default for air quality keyed by `0.01°`-rounded coordinates, ~1.1 km; `30 min` / `3×` TTL for geocoding; max `200` entries each) prevents redundant upstream fetches.
 - **Token-Lean AI Calls & Strict Timeouts**: Compact JSON-only Gemini prompts with `ThinkingLevel.MINIMAL` on Gemini 4, 5 s upstream Open-Meteo timeout, and 12 s Gemini timeout with non-retryable 4xx fast fallback.
 
@@ -209,25 +225,30 @@ Run all tests or check coverage:
 npm test
 npm run test:coverage
 npm run lint
+npm run typecheck
+npm run build
 ```
 
-### What Is Covered (12 Suites · 122 Tests)
+### What Is Covered (21 Suites · 170 Tests)
 
-- **Unit tests** (`tests/unit/`): CPCB AQI boundary breakpoints & dominant pollutant (`aqi.test.js`), household risk scoring (`riskProfile.test.js`), 34-action rule filtering & caps (`actionSelector.test.js`), daypart timeline & best-hour detection (`timeSlots.test.js`), transparent CO₂e impact math (`impact.test.js`), LRU/TTL cache (`cache.test.js`), Open-Meteo parsing & timeouts (`airQualityService.test.js`), Gemini schema validation, markup stripping, prompt-injection isolation, and fallback (`geminiService.test.js`), frontend error mapping, locale parity, strict CSP/budget checks, `public/` allowlist, and git secret scan (`frontendAndHygiene.test.js`).
-- **Integration tests** (`tests/integration/`): Supertest API route suite (`api.test.js` covering `/api/health`, `/api/geocode`, `/api/air`, `/api/plan`, Gemini 403 fallback, upstream failure fallback, unknown-key/range rejection) and dedicated security suite (`security.test.js` covering CSP headers, `413` body cap, `403 ORIGIN_NOT_ALLOWED` origin guard, `TRUST_PROXY` validation, and `429` rate limit with `requestId`), sharing `testApp.js`.
-- **Accessibility tests** (`tests/a11y/a11y.test.js`): `axe-core` + `jsdom` zero-violation checks on initial & rendered results states, label association, bilingual `html[lang]`, live region announcements, and 6-band skyline state transitions.
-- **Lint & formatting** (`npm run lint`): runs `eslint . && prettier --check .`, including a custom ESLint rule requiring JSDoc (`@param`/`@returns`) on all exported functions in `src/` and `public/js/`.
+- **Unit tests** (`tests/unit/`, 18 suites, sharing DOM/locale fixtures in `tests/helpers/domFixtures.js`):
+  - Engine & core utilities: CPCB AQI breakpoints & dominant pollutant (`aqi.test.js`), household risk scoring (`riskProfile.test.js`), 34-action rule filtering & caps (`actionSelector.test.js`), daypart timeline & best-hour detection (`timeSlots.test.js`), transparent CO₂e impact math (`impact.test.js`), LRU/TTL cache (`cache.test.js`), PII-redacting structured logger (`logger.test.js`), and targeted branch coverage (`edgeBranches.test.js`).
+  - Services & middleware: Open-Meteo parsing, timeouts & retry/4xx fast-fail (`airQualityService.test.js`), Gemini schema validation, markup stripping, prompt-injection isolation & fallback (`geminiService.test.js`), end-to-end plan orchestration (`planBuilder.test.js`), Zod schemas & Devanagari validation (`validate.test.js`), and centralized error responses (`errorHandler.test.js`).
+  - Frontend & hygiene: form validation (`form.test.js`), combobox keyboard/focusout & live status (`combobox.test.js`), bilingual i18n, error mapping & fetch timeout/abort/offline handling (`i18nAndApi.test.js`), safe DOM rendering, disclosures & Hindi impact table (`render.test.js`), and locale parity, strict CSP, byte budgets, `public/` allowlist & secret scanning (`repoHygiene.test.js`).
+- **Integration tests** (`tests/integration/`, 2 suites): Supertest API route suite (`api.test.js` covering `/api/health`, `/api/geocode`, `/api/air`, `/api/plan`, Gemini 403 fallback, upstream failure fallback, unknown-key/range rejection) and dedicated security suite (`security.test.js` covering CSP headers, `413` body cap, `403 ORIGIN_NOT_ALLOWED` origin guard, `TRUST_PROXY` validation, and `429` rate limits with `requestId`), sharing `testApp.js`.
+- **Accessibility tests** (`tests/a11y/a11y.test.js`, 1 suite): `axe-core` + `jsdom` zero-violation checks on initial landing, rendered plan, Hindi (`lang="hi"`), Dark theme (`data-theme="dark"`), and validation error-summary states, plus label association, live announcements, and 6-band skyline transitions.
+- **Lint, static typecheck & syntax build**: `npm run lint` runs `eslint . && prettier --check .` (enforcing JSDoc on exported functions, classes, and arrow functions in `src/` and `public/js/`, `no-shadow`, and `no-console` under `src/`); `npm run typecheck` runs `tsc --noEmit -p jsconfig.json` against `src/types.d.ts` with zero `@ts-ignore`; `npm run build` syntax-checks all JavaScript files via `scripts/syntax-check.js`.
 
 ### Actual Jest Coverage (`npm run test:coverage`)
 
 Coverage scope (`collectCoverageFrom`): `src/engine/**/*.js`, `src/services/**/*.js`, `src/utils/**/*.js`.
 
-| File / Directory |    % Stmts |   % Branch |    % Funcs |    % Lines |
-| ---------------- | ---------: | ---------: | ---------: | ---------: |
-| **All files**    | **94.44%** | **83.19%** | **95.29%** | **94.96%** |
-| `src/engine`     | **94.93%** | **89.17%** | **96.66%** | **95.57%** |
-| `src/services`   | **96.44%** | **76.96%** | **97.56%** | **97.23%** |
-| `src/utils`      | **87.14%** | **73.77%** | **85.71%** | **87.14%** |
+| File / Directory |    % Stmts |   % Branch |  % Funcs |    % Lines |
+| ---------------- | ---------: | ---------: | -------: | ---------: |
+| **All files**    | **99.21%** | **90.85%** | **100%** | **99.58%** |
+| `src/engine`     | **99.15%** | **94.07%** | **100%** | **99.55%** |
+| `src/services`   | **99.02%** | **84.30%** | **100%** | **99.47%** |
+| `src/utils`      |   **100%** | **95.08%** | **100%** |   **100%** |
 
 ---
 
@@ -245,8 +266,11 @@ Coverage scope (`collectCoverageFrom`): `src/engine/**/*.js`, `src/services/**/*
 
 ```text
 airwise/
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # GitHub Actions CI (Node 20 & 22: lint, build, typecheck, test)
 ├── docs/
-│   ├── architecture.md          # System architecture & Mermaid data-flow diagram
+│   ├── architecture.md          # System architecture, error boundaries & Mermaid data-flow diagram
 │   ├── decisions.md             # Engineering & design decision log
 │   ├── design.md                # Visual system, palette, typography & layout spec
 │   └── images/                  # Compressed Good & Severe haze screenshots
@@ -256,6 +280,8 @@ airwise/
 │   ├── js/                      # Vanilla ES modules (main, combobox, geolocation, form, api, render, renderIcons, haze, i18n, a11y)
 │   ├── locales/                 # Key-identical en.json & hi.json translations
 │   └── index.html               # Semantic HTML + 5-layer riverfront SVG skyline
+├── scripts/
+│   └── syntax-check.js          # Zero-dependency ES module syntax checker (`npm run build`)
 ├── src/
 │   ├── config/                  # Env validation, CPCB breakpoints, emission factors
 │   ├── engine/                  # Pure deterministic AQI, risk, selector, timeline & impact modules
@@ -265,16 +291,21 @@ airwise/
 │   ├── services/                # Open-Meteo client, Gemini client & schema/sanitizer, plan orchestrator
 │   ├── utils/                   # Structured PII-free logger, typed AppErrors, LRU+TTL cache
 │   ├── app.js                   # Express app factory (testable via Supertest)
-│   └── server.js                # HTTP server entry point & graceful shutdown
+│   ├── server.js                # HTTP server entry point, timeouts & graceful shutdown
+│   └── types.d.ts               # Shared JSDoc TypeScript interfaces for `tsc --noEmit`
 ├── tests/
-│   ├── a11y/                    # axe-core + jsdom WCAG 2.1 AA tests
+│   ├── a11y/                    # axe-core + jsdom WCAG 2.1 AA tests (a11y.test.js)
+│   ├── helpers/                 # Shared DOM & locale test fixtures (domFixtures.js)
 │   ├── integration/             # Supertest API routes (api.test.js), security (security.test.js) & testApp.js
-│   └── unit/                    # Engine, service, frontend & secret-hygiene tests
+│   └── unit/                    # 18 unit suites covering engine, services, middleware, frontend & hygiene
+├── .editorconfig                # Cross-editor indentation & line-ending rules
 ├── .env.example                 # Safe configuration template (no secrets)
 ├── .gitignore                   # Ignored local, build, and runtime artifact paths
 ├── .prettierignore              # Files excluded from Prettier checks
 ├── .prettierrc                  # Prettier formatting rules
-├── eslint.config.js             # ESLint v10 flat config + export JSDoc rule
+├── CONTRIBUTING.md              # Contributor setup, scripts & architectural guidelines
+├── eslint.config.js             # ESLint v10 flat config + export JSDoc & no-console rules
+├── jsconfig.json                # Static checkJs configuration for `npm run typecheck`
 ├── LICENSE                      # MIT License
 ├── metadata.json                # Applet runtime manifest
 ├── package.json                 # ESM scripts & minimal dependency manifest

@@ -4,9 +4,7 @@ import { planRequestSchema, validate } from '../middleware/validate.js';
 /**
  * Create Express router serving the rate-limited POST /api/plan endpoint.
  *
- * @param {object} deps - Route dependencies.
- * @param {object} deps.planBuilder - Household plan orchestration service.
- * @param {import('express').RequestHandler} deps.planRateLimiter - Stricter plan rate limiter.
+ * @param {{ planBuilder: import('../types.d.ts').PlanBuilder, planRateLimiter: import('express').RequestHandler }} deps - Route dependencies.
  * @returns {import('express').Router} Configured Express router.
  */
 export function createPlanRouter({ planBuilder, planRateLimiter }) {

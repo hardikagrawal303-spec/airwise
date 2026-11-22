@@ -90,8 +90,8 @@ function stripMarkup(text) {
 /**
  * Build deterministic fallback plan content from locale templates.
  *
- * @param {object} input - Engine outputs and language.
- * @returns {object} Rule-based copy payload with copySource 'rules'.
+ * @param {{ aqiResult: import('../types.d.ts').AqiResult, risk: import('../types.d.ts').RiskProfile, selectedActions: import('../types.d.ts').ActionItem[], language?: import('../types.d.ts').LanguageCode }} input - Engine outputs and language.
+ * @returns {import('../types.d.ts').PersonalizedPlanContent} Rule-based copy payload with copySource 'rules'.
  */
 export function buildRuleBasedContent({ aqiResult, risk, selectedActions, language = 'en' }) {
   const locale = getLocale(language);
@@ -115,12 +115,8 @@ export function buildRuleBasedContent({ aqiResult, risk, selectedActions, langua
  * Build a minimal, PII-free JSON payload for Gemini.
  * Never includes user free text, precise coordinates, or health booleans.
  *
- * @param {object} input - Engine outputs to summarize.
- * @param {object} input.aqiResult - Computed CPCB AQI result.
- * @param {object} input.risk - Computed household vulnerability profile.
- * @param {Array<object>} input.selectedActions - Deterministic engine-selected actions.
- * @param {string} [input.language='en'] - Target output language ('en' or 'hi').
- * @returns {object} Compact JSON-serializable prompt payload.
+ * @param {{ aqiResult: import('../types.d.ts').AqiResult, risk: import('../types.d.ts').RiskProfile, selectedActions: import('../types.d.ts').ActionItem[], language?: import('../types.d.ts').LanguageCode }} input - Engine outputs to summarize.
+ * @returns {{ aqiCategory: import('../types.d.ts').AqiCategory, dominantPollutant: 'PM2.5'|'PM10', vulnerabilityLevel: import('../types.d.ts').VulnerabilityLevel, language: import('../types.d.ts').LanguageCode, personaTone: string, selectedActions: Array<{ actionId: string, baseText: string, baseWhy: string }> }} Compact JSON-serializable prompt payload.
  */
 export function buildCompactPromptPayload({ aqiResult, risk, selectedActions, language = 'en' }) {
   const enLocale = getLocale('en');
@@ -138,6 +134,11 @@ export function buildCompactPromptPayload({ aqiResult, risk, selectedActions, la
   };
 }
 
+/**
+ * @param {Array<{ actionId: string, personalizedText: string, whyItMatters: string }>} rawItems
+ * @param {Set<string>} expectedSet
+ * @returns {{ ok: boolean, items?: import('../types.d.ts').PersonalizedActionCopy[], reason?: string }}
+ */
 function sanitizeModelItems(rawItems, expectedSet) {
   if (rawItems.length !== expectedSet.size) {
     return { ok: false, reason: 'item_count_mismatch' };
@@ -170,7 +171,7 @@ function sanitizeModelItems(rawItems, expectedSet) {
  *
  * @param {string} rawText - Raw JSON string from Gemini.
  * @param {string[]} allowedActionIds - Exact action IDs chosen by the rule engine.
- * @returns {{ ok: true, value: object } | { ok: false, reason: string }} Validation outcome.
+ * @returns {{ ok: boolean, value?: import('../types.d.ts').PersonalizedPlanContent, reason?: string }} Validation outcome.
  */
 export function validateAndSanitizeModelOutput(rawText, allowedActionIds) {
   let parsedJson;

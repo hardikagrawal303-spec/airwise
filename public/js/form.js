@@ -1,8 +1,19 @@
-import { announce, clearFormErrors, showFormErrors } from './a11y.js';
+import { announce, byId, clearFormErrors, showFormErrors } from './a11y.js';
 import { ClientApiError, geocodeCities, mapErrorToLocaleKey } from './api.js';
 
-const byId = (id) => document.getElementById(id);
-const val = (id) => byId(id)?.value;
+const FORM_LIMITS = Object.freeze({
+  minAdults: 1,
+  maxMembers: 10,
+  minCommuteKm: 0,
+  maxCommuteKm: 200,
+  minPm25: 0,
+  maxPm25: 1500,
+  minPm10: 0,
+  maxPm10: 2000,
+  minCityQueryLen: 2,
+});
+
+const val = (id) => /** @type {HTMLInputElement|HTMLSelectElement|null} */ (byId(id))?.value;
 
 function readManualLocation(errors, t) {
   const pm25Raw = val('manual-pm25')?.trim() ?? '';
@@ -10,13 +21,13 @@ function readManualLocation(errors, t) {
   const placeRaw = val('manual-place')?.trim() ?? '';
   const pm25 = pm25Raw === '' ? Number.NaN : Number(pm25Raw);
 
-  if (!Number.isFinite(pm25) || pm25 < 0 || pm25 > 1500) {
+  if (!Number.isFinite(pm25) || pm25 < FORM_LIMITS.minPm25 || pm25 > FORM_LIMITS.maxPm25) {
     errors.push({ fieldId: 'manual-pm25', message: t('form.error.pm25Invalid') });
   }
   let pm10 = null;
   if (pm10Raw) {
     pm10 = Number(pm10Raw);
-    if (!Number.isFinite(pm10) || pm10 < 0 || pm10 > 2000) {
+    if (!Number.isFinite(pm10) || pm10 < FORM_LIMITS.minPm10 || pm10 > FORM_LIMITS.maxPm10) {
       errors.push({ fieldId: 'manual-pm10', message: t('form.error.pm10Invalid') });
     }
   }
@@ -29,8 +40,8 @@ function readManualLocation(errors, t) {
 
 /**
  * Collect and validate household and location fields into a plan payload.
- * @param {object} opts
- * @returns {{ ok: boolean, errors?: Array, payload?: object }}
+ * @param {{ state: import('../../src/types.d.ts').FrontendAppState, t: import('../../src/types.d.ts').TranslateFn, getLanguage: () => import('../../src/types.d.ts').LanguageCode }} opts
+ * @returns {{ ok: boolean, payload?: import('../../src/types.d.ts').PlanRequestInput, errors?: Array<{ fieldId: string, message: string }> }}
  */
 export function collectAndValidateForm({ state, t, getLanguage }) {
   const errors = [];
@@ -39,10 +50,18 @@ export function collectAndValidateForm({ state, t, getLanguage }) {
   const elderly = Number.parseInt(val('elderly-input'), 10) || 0;
   const commuteKmPerDay = Number(val('commute-km-input'));
 
-  if (!Number.isInteger(adults) || adults < 1 || adults > 10) {
+  if (
+    !Number.isInteger(adults) ||
+    adults < FORM_LIMITS.minAdults ||
+    adults > FORM_LIMITS.maxMembers
+  ) {
     errors.push({ fieldId: 'adults-input', message: t('form.error.adultsInvalid') });
   }
-  if (!Number.isFinite(commuteKmPerDay) || commuteKmPerDay < 0 || commuteKmPerDay > 200) {
+  if (
+    !Number.isFinite(commuteKmPerDay) ||
+    commuteKmPerDay < FORM_LIMITS.minCommuteKm ||
+    commuteKmPerDay > FORM_LIMITS.maxCommuteKm
+  ) {
     errors.push({ fieldId: 'commute-km-input', message: t('form.error.kmInvalid') });
   }
 
@@ -58,20 +77,31 @@ export function collectAndValidateForm({ state, t, getLanguage }) {
 
   if (errors.length > 0) return { ok: false, errors };
 
+  /** @type {import('../../src/types.d.ts').PlanRequestInput} */
   const payload = {
     profile: {
       members: {
         adults,
-        children: Math.min(10, Math.max(0, children)),
-        elderly: Math.min(10, Math.max(0, elderly)),
+        children: Math.min(FORM_LIMITS.maxMembers, Math.max(0, children)),
+        elderly: Math.min(FORM_LIMITS.maxMembers, Math.max(0, elderly)),
       },
-      hasRespiratoryOrHeartCondition: Boolean(byId('condition-input')?.checked),
-      commute: val('commute-select') || 'car',
+      hasRespiratoryOrHeartCondition: Boolean(
+        /** @type {HTMLInputElement|null} */ (byId('condition-input'))?.checked
+      ),
+      commute: /** @type {import('../../src/types.d.ts').CommuteMode} */ (
+        val('commute-select') || 'car'
+      ),
       commuteKmPerDay,
-      cookingFuel: val('fuel-select') || 'lpg',
+      cookingFuel: /** @type {import('../../src/types.d.ts').CookingFuel} */ (
+        val('fuel-select') || 'lpg'
+      ),
       hasPurifier: val('purifier-select') === 'true',
-      budget: val('budget-select') || 'medium',
-      homeType: val('home-type-select') || 'apartment',
+      budget: /** @type {import('../../src/types.d.ts').BudgetLevel} */ (
+        val('budget-select') || 'medium'
+      ),
+      homeType: /** @type {import('../../src/types.d.ts').HomeType} */ (
+        val('home-type-select') || 'apartment'
+      ),
       language: getLanguage(),
     },
   };
@@ -83,7 +113,7 @@ export function collectAndValidateForm({ state, t, getLanguage }) {
 
 /**
  * Bind household form submission, auto-geocoding fallback, and error summary.
- * @param {object} opts
+ * @param {{ state: import('../../src/types.d.ts').FrontendAppState, t: import('../../src/types.d.ts').TranslateFn, getLanguage: () => import('../../src/types.d.ts').LanguageCode, selectCity: (city: import('../../src/types.d.ts').GeocodeResult) => void, onSubmit: (payload: import('../../src/types.d.ts').PlanRequestInput, opts?: { focusResult?: boolean }) => Promise<void>, onError: (key: string) => void }} opts
  * @returns {void}
  */
 export function bindFormSubmission({ state, t, getLanguage, selectCity, onSubmit, onError }) {
@@ -98,7 +128,7 @@ export function bindFormSubmission({ state, t, getLanguage, selectCity, onSubmit
 
     if (!state.useManual && !state.selectedLocation) {
       const typed = val('city-input')?.trim() || '';
-      if (typed.length >= 2) {
+      if (typed.length >= FORM_LIMITS.minCityQueryLen) {
         try {
           const matches = await geocodeCities(typed);
           if (matches.length > 0) selectCity(matches[0]);

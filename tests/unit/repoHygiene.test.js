@@ -1,48 +1,10 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { mapErrorToLocaleKey } from '../../public/js/api.js';
 import { ACTIONS } from '../../src/knowledge/actions.js';
+import { enLocale, hiLocale, rootDir } from '../helpers/domFixtures.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, '../..');
-
-const enLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/en.json'), 'utf8'));
-const hiLocale = JSON.parse(fs.readFileSync(path.join(rootDir, 'public/locales/hi.json'), 'utf8'));
-
-describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene', () => {
-  test('maps every API error code and HTTP status to friendly localized messages (never raw HTTP text)', () => {
-    const cases = [
-      { code: 'AIR_UPSTREAM_FAILED', status: 502 },
-      { code: 'GEOCODE_FAILED', status: 502 },
-      { code: 'VALIDATION_FAILED', status: 400 },
-      { code: 'RATE_LIMITED', status: 429 },
-      { code: 'ORIGIN_NOT_ALLOWED', status: 403 },
-      { code: 'PAYLOAD_TOO_LARGE', status: 413 },
-      { code: 'NOT_FOUND', status: 404 },
-      { code: 'INTERNAL_ERROR', status: 500 },
-      { status: 400 },
-      { status: 403 },
-      { status: 404 },
-      { status: 413 },
-      { status: 429 },
-      { status: 500 },
-      { status: 503 },
-      { isOffline: true },
-      { isTimeout: true },
-    ];
-
-    for (const input of cases) {
-      const key = mapErrorToLocaleKey(input);
-      expect(typeof enLocale[key]).toBe('string');
-      expect(enLocale[key].trim().length).toBeGreaterThan(10);
-      expect(typeof hiLocale[key]).toBe('string');
-      expect(hiLocale[key].trim().length).toBeGreaterThan(10);
-      expect(enLocale[key]).not.toMatch(/status\s+\d{3}|forbidden|internal server error/i);
-    }
-  });
-
+describe('Repository hygiene, locale parity, strict CSP, and performance budgets', () => {
   test('en.json and hi.json have identical key sets, non-empty values, and cover all 34 curated actions', () => {
     const enKeys = Object.keys(enLocale).sort();
     const hiKeys = Object.keys(hiLocale).sort();
@@ -65,22 +27,18 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
     const html = fs.readFileSync(path.join(rootDir, 'public/index.html'), 'utf8');
     const css = fs.readFileSync(path.join(rootDir, 'public/css/styles.css'), 'utf8');
 
-    // No inline <script> without src attribute
     const scriptTags = html.match(/<script\b[^>]*>/gi) || [];
     for (const tag of scriptTags) {
       expect(tag).toMatch(/\bsrc=/i);
     }
 
-    // No inline style="..." or on*= handlers
     expect(html).not.toMatch(/\sstyle=/i);
     expect(html).not.toMatch(/\son[a-z]+=/i);
 
-    // Zero external URLs in HTML (other than SVG xmlns namespace) or CSS
     const htmlWithoutSvgNs = html.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '');
     expect(htmlWithoutSvgNs).not.toMatch(/https?:\/\//i);
     expect(css).not.toMatch(/https?:\/\//i);
 
-    // Zero innerHTML anywhere in public/js
     const jsDir = path.join(rootDir, 'public/js');
     for (const file of fs.readdirSync(jsDir)) {
       if (!file.endsWith('.js')) continue;
@@ -161,7 +119,7 @@ describe('Frontend error mapping, locale parity, CSP budgets, and secret hygiene
 
     for (const relPath of filesToScan) {
       if (/\.(png|jpg|jpeg|woff2|ico)$/i.test(relPath)) continue;
-      if (relPath === 'tests/unit/frontendAndHygiene.test.js') continue;
+      if (relPath === 'tests/unit/repoHygiene.test.js') continue;
       const fullPath = path.join(rootDir, relPath);
       if (!fs.existsSync(fullPath)) continue;
       const content = fs.readFileSync(fullPath, 'utf8');

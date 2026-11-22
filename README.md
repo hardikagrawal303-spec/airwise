@@ -154,7 +154,7 @@ flowchart LR
 
 ## 6. Setup
 
-1. **Prerequisites**: Install **Node.js 20+** (tested on Node 22).
+1. **Prerequisites**: Install **Node.js 22+**.
 2. **Install dependencies**:
    ```bash
    npm install
@@ -268,7 +268,7 @@ Coverage scope (`collectCoverageFrom`): `src/engine/**/*.js`, `src/services/**/*
 airwise/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml               # GitHub Actions CI (Node 20 & 22: lint, build, typecheck, test)
+│       └── ci.yml               # GitHub Actions CI (Node 22: lint, build, typecheck, test)
 ├── docs/
 │   ├── architecture.md          # System architecture, error boundaries & Mermaid data-flow diagram
 │   ├── decisions.md             # Engineering & design decision log

@@ -1,6 +1,6 @@
 # AirWise Architecture
 
-AirWise is a hybrid **deterministic rule engine + constrained GenAI** web application built on Node.js 20+ (ES modules), Express, and vanilla HTML/CSS/JS. Its core design goal is safety and reliability: **every health, indoor-air, sustainable-switch, and community recommendation is chosen by a unit-tested rule engine from a curated 34-action knowledge base.** Google Gemini is used strictly as an optional language personalization layer over those exact selected action IDs, with strict Zod validation and silent deterministic fallback.
+AirWise is a hybrid **deterministic rule engine + constrained GenAI** web application built on Node.js 22+ (ES modules), Express, and vanilla HTML/CSS/JS. Its core design goal is safety and reliability: **every health, indoor-air, sustainable-switch, and community recommendation is chosen by a unit-tested rule engine from a curated 34-action knowledge base.** Google Gemini is used strictly as an optional language personalization layer over those exact selected action IDs, with strict Zod validation and silent deterministic fallback.
 
 ---
 

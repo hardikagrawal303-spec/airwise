@@ -4,7 +4,7 @@ Thank you for contributing to AirWise. This guide covers local setup, code style
 
 ## Local Setup
 
-1. Install **Node.js 20+** (tested on Node 20 and 22).
+1. Install **Node.js 22+**.
 2. Install dependencies:
    ```bash
    npm install
